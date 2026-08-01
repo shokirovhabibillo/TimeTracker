@@ -22,7 +22,7 @@ class MiniCalendar extends StatelessWidget {
     required this.activeTask,
     required this.activeTaskUpcomingBlocks,
     required this.onTaskTap,
-    this.highlightColor = AppColors.htNeonGreen,
+    this.highlightColor = const Color(0xFF39FF14),
     this.neonStyle = true,
   });
 

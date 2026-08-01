@@ -73,7 +73,68 @@ class TimerDisplay extends StatelessWidget {
   }
 }
 
-/// Medium analog clock shown alongside the timer.
+/// Big, borderless digit display — elderly/minimalist-friendly alternative
+/// to the ring TimerDisplay. No progress ring, just huge readable numbers.
+class BigDigitTimerDisplay extends StatelessWidget {
+  final String timeText;
+  final Color accentColor;
+  final String subtitle;
+
+  const BigDigitTimerDisplay({
+    super.key,
+    required this.timeText,
+    required this.accentColor,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          timeText,
+          style: TextStyle(
+            fontSize: 88,
+            fontWeight: FontWeight.bold,
+            fontFeatures: const [FontFeature.tabularFigures()],
+            color: accentColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(subtitle, style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
+      ],
+    );
+  }
+}
+
+/// Minimal digital clock — HH:mm:ss in large plain text, no clock face.
+class DigitalClock extends StatelessWidget {
+  final Color accentColor;
+  const DigitalClock({super.key, required this.accentColor});
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DateTime>(
+      stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+      initialData: DateTime.now(),
+      builder: (context, snapshot) {
+        final now = snapshot.data!;
+        return Text(
+          '${_two(now.hour)}:${_two(now.minute)}:${_two(now.second)}',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
+            color: accentColor,
+          ),
+        );
+      },
+    );
+  }
+}
 class MediumClock extends StatelessWidget {
   final Color accentColor;
   const MediumClock({super.key, required this.accentColor});
