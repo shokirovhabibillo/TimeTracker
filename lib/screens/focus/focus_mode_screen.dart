@@ -9,6 +9,7 @@ import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
 import '../../services/audio_service.dart';
 import '../../widgets/gamified_progress.dart';
+import '../../widgets/list_calendar.dart';
 import '../../widgets/mini_calendar.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/timer_display.dart';
@@ -16,10 +17,13 @@ import '../../widgets/timer_display.dart';
 /// Full landscape dashboard: header (task + progress), large
 /// stopwatch/pomodoro, medium clock, interactive mini-calendar with
 /// active-task highlighting, keep-screen-on toggle and white-noise
-/// generator. Meant to be entered once a task is started; the screen
-/// forces landscape orientation for the duration.
+/// generator. Landscape orientation is only forced while [isActive] is
+/// true (i.e. this tab is actually selected) — the screen is kept alive
+/// in an IndexedStack, so locking on `initState` would force landscape
+/// app-wide the moment the app starts.
 class FocusModeScreen extends StatefulWidget {
-  const FocusModeScreen({super.key});
+  final bool isActive;
+  const FocusModeScreen({super.key, this.isActive = true});
 
   @override
   State<FocusModeScreen> createState() => _FocusModeScreenState();
@@ -32,18 +36,36 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    if (widget.isActive) _lockLandscape();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().refreshActiveTask();
     });
   }
 
   @override
-  void dispose() {
+  void didUpdateWidget(covariant FocusModeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _lockLandscape();
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _unlockOrientation();
+    }
+  }
+
+  void _lockLandscape() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  void _unlockOrientation() {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+  }
+
+  @override
+  void dispose() {
+    if (widget.isActive) _unlockOrientation();
     if (_keepScreenOn) ScreenWakeService.disable();
     AudioService.instance.stop();
     super.dispose();
@@ -70,10 +92,12 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isHightech =
-        context.watch<SettingsProvider>().themeType == AppThemeType.hightech;
-    final accent = isHightech ? AppColors.htElectricCyan : Theme.of(context).colorScheme.primary;
-    final highlight = isHightech ? AppColors.htNeonGreen : AppColors.classicOlive;
+    final settings = context.watch<SettingsProvider>();
+    final theme = Theme.of(context);
+    final extras = theme.extension<AppThemeExtras>()!;
+    final accent = theme.colorScheme.primary;
+    final highlight = extras.highlightColor;
+    final textColor = theme.colorScheme.onSurface;
 
     final taskProvider = context.watch<TaskProvider>();
     final timerProvider = context.watch<TimerProvider>();
@@ -87,7 +111,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
             Expanded(
               child: Row(
                 children: [
-                  // Left: mini calendar + gamified progress
+                  // Left: calendar (style depends on settings) + gamified progress
                   Expanded(
                     flex: 4,
                     child: Padding(
@@ -96,19 +120,29 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Bugungi jadval',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.white.withOpacity(0.5))),
+                              style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.5))),
                           const SizedBox(height: 6),
-                          MiniCalendar(
-                            tasks: taskProvider.tasksForDay,
-                            activeTask: taskProvider.activeTask,
-                            activeTaskUpcomingBlocks: taskProvider.activeTaskUpcomingBlocks,
-                            onTaskTap: (t) {},
-                            highlightColor: highlight,
-                            neonStyle: isHightech,
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: settings.settings.calendarStyle == 'list'
+                                  ? ListCalendar(
+                                      tasks: taskProvider.tasksForDay,
+                                      activeTask: taskProvider.activeTask,
+                                      onTaskTap: (t) {},
+                                      highlightColor: highlight,
+                                    )
+                                  : MiniCalendar(
+                                      tasks: taskProvider.tasksForDay,
+                                      activeTask: taskProvider.activeTask,
+                                      activeTaskUpcomingBlocks:
+                                          taskProvider.activeTaskUpcomingBlocks,
+                                      onTaskTap: (t) {},
+                                      highlightColor: highlight,
+                                      neonStyle: extras.glowEnabled,
+                                    ),
+                            ),
                           ),
-                          const Spacer(),
-                          if (isHightech)
+                          if (!extras.calmMode)
                             Center(
                               child: GamifiedProgress(
                                 progress: taskProvider.dayProgress,
@@ -120,29 +154,40 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                       ),
                     ),
                   ),
-                  // Center: large timer + clock
+                  // Center: large timer + clock (style depends on settings)
                   Expanded(
                     flex: 5,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TimerDisplay(
-                          timeText: timerProvider.mode == TimerMode.pomodoro
-                              ? timerProvider.formattedPomodoro
-                              : timerProvider.formattedElapsed,
-                          progress: timerProvider.mode == TimerMode.pomodoro
-                              ? 1 -
-                                  (timerProvider.pomodoroRemaining.inSeconds /
-                                      (TimerProvider.pomodoroFocusMinutes * 60))
-                              : timerProvider.progressAgainstPlan,
-                          accentColor: accent,
-                          subtitle: activeTask?.title ?? "Vazifa tanlanmagan",
-                          neonStyle: isHightech,
-                        ),
+                        if (settings.settings.timerStyle == 'big_digits')
+                          BigDigitTimerDisplay(
+                            timeText: timerProvider.mode == TimerMode.pomodoro
+                                ? timerProvider.formattedPomodoro
+                                : timerProvider.formattedElapsed,
+                            accentColor: accent,
+                            subtitle: activeTask?.title ?? "Vazifa tanlanmagan",
+                          )
+                        else
+                          TimerDisplay(
+                            timeText: timerProvider.mode == TimerMode.pomodoro
+                                ? timerProvider.formattedPomodoro
+                                : timerProvider.formattedElapsed,
+                            progress: timerProvider.mode == TimerMode.pomodoro
+                                ? 1 -
+                                    (timerProvider.pomodoroRemaining.inSeconds /
+                                        (TimerProvider.pomodoroFocusMinutes * 60))
+                                : timerProvider.progressAgainstPlan,
+                            accentColor: accent,
+                            subtitle: activeTask?.title ?? "Vazifa tanlanmagan",
+                            neonStyle: extras.glowEnabled,
+                          ),
                         const SizedBox(height: 16),
                         _TimerControls(timerProvider: timerProvider, activeTask: activeTask),
                         const SizedBox(height: 12),
-                        MediumClock(accentColor: accent),
+                        settings.settings.clockStyle == 'digital'
+                            ? DigitalClock(accentColor: accent)
+                            : MediumClock(accentColor: accent),
                       ],
                     ),
                   ),
@@ -164,8 +209,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text('Fon ovozi',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.white.withOpacity(0.5))),
+                              style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.5))),
                           const SizedBox(height: 4),
                           Wrap(
                             spacing: 6,
@@ -202,6 +246,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final extras = Theme.of(context).extension<AppThemeExtras>()!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -220,7 +265,7 @@ class _Header extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                AppProgressBar(value: progress, color: accent, glow: true),
+                AppProgressBar(value: progress, color: accent, glow: extras.glowEnabled),
               ],
             ),
           ),
