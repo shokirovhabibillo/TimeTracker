@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'core/theme/app_theme.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/usage_provider.dart';
@@ -30,7 +29,7 @@ class FocusLifeTrackerApp extends StatelessWidget {
           return MaterialApp(
             title: 'Focus & Life Tracker',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.of(settings.themeType),
+            theme: settings.themeData,
             home: settings.isLoading
                 ? const _SplashScreen()
                 : const HomeScreen(),
