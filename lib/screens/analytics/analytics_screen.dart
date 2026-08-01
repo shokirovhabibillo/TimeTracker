@@ -23,8 +23,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       await usage.checkPermission();
       if (usage.hasPermission) {
         await usage.refresh();
-        final limit =
-            context.read<SettingsProvider>().settings.dailyDistractionLimitMin;
+        final limit = context.read<SettingsProvider>().settings.dailyDistractionLimitMin;
         await usage.checkAndWarnIfOverLimit(limit);
       }
     });
@@ -49,88 +48,132 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget build(BuildContext context) {
     final usage = context.watch<UsageProvider>();
     final settings = context.watch<SettingsProvider>();
-    final isHightech = settings.themeType == AppThemeType.hightech;
-    final warnColor = isHightech ? AppColors.htCyberRed : Colors.red.shade700;
+    final extras = Theme.of(context).extension<AppThemeExtras>()!;
+    final scheme = Theme.of(context).colorScheme;
     final limit = settings.settings.dailyDistractionLimitMin;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Diqqat tahlili')),
       body: !usage.isNativeSupported
-          ? _UnsupportedPlatformNotice()
+          ? const _UnsupportedPlatformNotice()
           : !usage.hasPermission
               ? _PermissionRequest(onGrant: () => usage.requestPermission())
               : RefreshIndicator(
                   onRefresh: usage.refresh,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Chalg'ituvchi ilovalar",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${usage.totalDistractingSeconds ~/ 60} / $limit daqiqa',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: usage.totalDistractingSeconds >= limit * 60
-                                      ? warnColor
-                                      : null,
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    final columns = constraints.maxWidth > 700 ? 3 : (constraints.maxWidth > 420 ? 2 : 1);
+                    return GridView(
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 1.3,
+                      ),
+                      children: [
+                        _BentoCard(
+                          title: "Chalg'ituvchi ilovalar",
+                          child: _DistractionSummary(usage: usage, limit: limit, extras: extras),
+                        ),
+                        ..._categoriesGrouped(usage).entries.map(
+                              (e) => _BentoCard(
+                                title: _categoryLabel(e.key),
+                                child: Center(
+                                  child: Text('${e.value ~/ 60} daq',
+                                      style: Theme.of(context).textTheme.headlineSmall),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              AppProgressBar(
-                                value: limit == 0
-                                    ? 0
-                                    : (usage.totalDistractingSeconds / 60) / limit,
-                                color: usage.totalDistractingSeconds >= limit * 60
-                                    ? warnColor
-                                    : (isHightech
-                                        ? AppColors.htElectricCyan
-                                        : Theme.of(context).colorScheme.primary),
-                                glow: isHightech,
-                              ),
-                            ],
+                            ),
+                        _BentoCard(
+                          title: 'Eng ko\'p ishlatilgan',
+                          span: true,
+                          child: Column(
+                            children: usage.todayUsage.take(6).map((u) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      u.isDistracting ? Icons.warning_amber : Icons.check_circle,
+                                      size: 16,
+                                      color: u.isDistracting ? extras.warningColor : Colors.green,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(u.appName)),
+                                    Text('${u.timeSpentSeconds ~/ 60} daq'),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text('Turkumlar boyicha', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      ...usage.secondsByCategory.entries.map((e) => Card(
-                            child: ListTile(
-                              title: Text(_categoryLabel(e.key)),
-                              trailing: Text('${e.value ~/ 60} daq'),
-                            ),
-                          )),
-                      const SizedBox(height: 16),
-                      Text('Ilovalar', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      ...usage.todayUsage.map((u) => Card(
-                            child: ListTile(
-                              leading: Icon(
-                                u.isDistracting ? Icons.warning_amber : Icons.check_circle,
-                                color: u.isDistracting ? warnColor : Colors.green,
-                              ),
-                              title: Text(u.appName),
-                              subtitle: Text(_categoryLabel(u.appCategory)),
-                              trailing: Text('${u.timeSpentSeconds ~/ 60} daq'),
-                            ),
-                          )),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
                 ),
+    );
+  }
+
+  Map<String, int> _categoriesGrouped(UsageProvider usage) => usage.secondsByCategory;
+}
+
+class _BentoCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  final bool span;
+  const _BentoCard({required this.title, required this.child, this.span = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 8),
+            Expanded(child: child),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DistractionSummary extends StatelessWidget {
+  final UsageProvider usage;
+  final int limit;
+  final AppThemeExtras extras;
+  const _DistractionSummary({required this.usage, required this.limit, required this.extras});
+
+  @override
+  Widget build(BuildContext context) {
+    final overLimit = usage.totalDistractingSeconds >= limit * 60;
+    final color = overLimit ? extras.warningColor : Theme.of(context).colorScheme.primary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('${usage.totalDistractingSeconds ~/ 60} / $limit daq',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: overLimit ? color : null)),
+        const SizedBox(height: 8),
+        AppProgressBar(
+          value: limit == 0 ? 0 : (usage.totalDistractingSeconds / 60) / limit,
+          color: color,
+          glow: extras.glowEnabled,
+        ),
+      ],
     );
   }
 }
 
 class _UnsupportedPlatformNotice extends StatelessWidget {
+  const _UnsupportedPlatformNotice();
+
   @override
   Widget build(BuildContext context) {
     return Center(
