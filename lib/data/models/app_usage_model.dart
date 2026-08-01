@@ -56,19 +56,25 @@ class AppUsageModel {
 /// theme + ambient sound + sleep window preferences.
 class UserSettingsModel {
   final int id;
-  final String themeType; // "classic" | "hightech"
+  final String themeType; // ThemeSpec.id, e.g. "youth_neon_hud"
   final String? ambientSound;
   final String sleepStartTime; // "HH:mm"
   final String sleepEndTime; // "HH:mm"
   final int dailyDistractionLimitMin;
+  final String clockStyle; // "analog" | "digital"
+  final String timerStyle; // "ring" | "big_digits"
+  final String calendarStyle; // "timeline" | "list"
 
   UserSettingsModel({
     this.id = 1,
-    this.themeType = 'hightech',
+    this.themeType = 'youth_neon_hud',
     this.ambientSound,
     this.sleepStartTime = '23:00',
     this.sleepEndTime = '07:00',
     this.dailyDistractionLimitMin = 90,
+    this.clockStyle = 'analog',
+    this.timerStyle = 'ring',
+    this.calendarStyle = 'timeline',
   });
 
   UserSettingsModel copyWith({
@@ -77,6 +83,9 @@ class UserSettingsModel {
     String? sleepStartTime,
     String? sleepEndTime,
     int? dailyDistractionLimitMin,
+    String? clockStyle,
+    String? timerStyle,
+    String? calendarStyle,
   }) {
     return UserSettingsModel(
       id: id,
@@ -86,6 +95,9 @@ class UserSettingsModel {
       sleepEndTime: sleepEndTime ?? this.sleepEndTime,
       dailyDistractionLimitMin:
           dailyDistractionLimitMin ?? this.dailyDistractionLimitMin,
+      clockStyle: clockStyle ?? this.clockStyle,
+      timerStyle: timerStyle ?? this.timerStyle,
+      calendarStyle: calendarStyle ?? this.calendarStyle,
     );
   }
 
@@ -97,18 +109,24 @@ class UserSettingsModel {
       'sleep_start_time': sleepStartTime,
       'sleep_end_time': sleepEndTime,
       'daily_distraction_limit_min': dailyDistractionLimitMin,
+      'clock_style': clockStyle,
+      'timer_style': timerStyle,
+      'calendar_style': calendarStyle,
     };
   }
 
   factory UserSettingsModel.fromMap(Map<String, dynamic> map) {
     return UserSettingsModel(
       id: map['id'] as int? ?? 1,
-      themeType: map['theme_type'] as String? ?? 'hightech',
+      themeType: map['theme_type'] as String? ?? 'youth_neon_hud',
       ambientSound: map['ambient_sound'] as String?,
       sleepStartTime: map['sleep_start_time'] as String? ?? '23:00',
       sleepEndTime: map['sleep_end_time'] as String? ?? '07:00',
       dailyDistractionLimitMin:
           map['daily_distraction_limit_min'] as int? ?? 90,
+      clockStyle: map['clock_style'] as String? ?? 'analog',
+      timerStyle: map['timer_style'] as String? ?? 'ring',
+      calendarStyle: map['calendar_style'] as String? ?? 'timeline',
     );
   }
 }
