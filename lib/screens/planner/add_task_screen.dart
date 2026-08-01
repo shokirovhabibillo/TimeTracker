@@ -17,7 +17,8 @@ const Map<String, String> _categoryDefaultColors = {
 class AddTaskScreen extends StatefulWidget {
   final TaskModel? existing;
   final DateTime initialDay;
-  const AddTaskScreen({super.key, this.existing, required this.initialDay});
+  final String? initialCategory;
+  const AddTaskScreen({super.key, this.existing, required this.initialDay, this.initialCategory});
 
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
@@ -39,7 +40,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     super.initState();
     final e = widget.existing;
     _titleController = TextEditingController(text: e?.title ?? '');
-    _category = e?.category ?? TaskCategory.work;
+    _category = e?.category ?? widget.initialCategory ?? TaskCategory.work;
     _start = e?.startTime ??
         DateTime(widget.initialDay.year, widget.initialDay.month,
             widget.initialDay.day, 9);

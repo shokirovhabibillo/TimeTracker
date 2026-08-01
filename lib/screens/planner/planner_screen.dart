@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/theme/app_theme.dart';
+import '../../data/models/task_model.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/mini_calendar.dart';
 import '../../widgets/progress_bar.dart';
+import '../../widgets/radial_quick_add.dart';
 import '../../widgets/task_tile.dart';
 import 'add_task_screen.dart';
 
@@ -23,18 +26,32 @@ class _PlannerScreenState extends State<PlannerScreen> {
     });
   }
 
+  void _openAddTask(BuildContext context, {String? category}) {
+    final taskProvider = context.read<TaskProvider>();
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => AddTaskScreen(initialDay: taskProvider.selectedDay, initialCategory: category),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final taskProvider = context.watch<TaskProvider>();
     final theme = Theme.of(context);
+    final extras = theme.extension<AppThemeExtras>()!;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reja')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => AddTaskScreen(initialDay: taskProvider.selectedDay),
-        )),
-        child: const Icon(Icons.add),
+      floatingActionButton: RadialQuickAddButton(
+        actions: [
+          RadialAction(
+              icon: Icons.task_alt, label: 'Vazifa', onTap: () => _openAddTask(context, category: TaskCategory.work)),
+          RadialAction(
+              icon: Icons.bedtime, label: 'Uyqu', onTap: () => _openAddTask(context, category: TaskCategory.sleep)),
+          RadialAction(
+              icon: Icons.restaurant, label: 'Ovqat', onTap: () => _openAddTask(context, category: TaskCategory.meal)),
+          RadialAction(
+              icon: Icons.repeat, label: 'Odat', onTap: () => _openAddTask(context, category: TaskCategory.habit)),
+        ],
       ),
       body: Column(
         children: [
@@ -42,10 +59,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: MiniCalendarHeader(
               day: taskProvider.selectedDay,
-              onPrev: () => taskProvider
-                  .selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
-              onNext: () => taskProvider
-                  .selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
+              onPrev: () =>
+                  taskProvider.selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
+              onNext: () =>
+                  taskProvider.selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
               onToday: () => taskProvider.selectDay(DateTime.now()),
             ),
           ),
@@ -57,7 +74,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   child: AppProgressBar(
                     value: taskProvider.dayProgress,
                     color: theme.colorScheme.primary,
-                    glow: true,
+                    glow: extras.glowEnabled,
                   ),
                 ),
                 const SizedBox(width: 8),
