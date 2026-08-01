@@ -19,22 +19,37 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN clock_style TEXT NOT NULL DEFAULT 'analog'");
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN timer_style TEXT NOT NULL DEFAULT 'ring'");
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN calendar_style TEXT NOT NULL DEFAULT 'timeline'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users_settings (
         id INTEGER PRIMARY KEY,
-        theme_type TEXT NOT NULL DEFAULT 'hightech',
+        theme_type TEXT NOT NULL DEFAULT 'youth_neon_hud',
         ambient_sound TEXT,
         sleep_start_time TEXT NOT NULL DEFAULT '23:00',
         sleep_end_time TEXT NOT NULL DEFAULT '07:00',
-        daily_distraction_limit_min INTEGER NOT NULL DEFAULT 90
+        daily_distraction_limit_min INTEGER NOT NULL DEFAULT 90,
+        clock_style TEXT NOT NULL DEFAULT 'analog',
+        timer_style TEXT NOT NULL DEFAULT 'ring',
+        calendar_style TEXT NOT NULL DEFAULT 'timeline'
       );
-    ''');
+    ''');;
 
     await db.execute('''
       CREATE TABLE tasks (
@@ -79,11 +94,14 @@ class DatabaseHelper {
     // Seed default settings row.
     await db.insert('users_settings', {
       'id': 1,
-      'theme_type': 'hightech',
+      'theme_type': 'youth_neon_hud',
       'ambient_sound': null,
       'sleep_start_time': '23:00',
       'sleep_end_time': '07:00',
       'daily_distraction_limit_min': 90,
+      'clock_style': 'analog',
+      'timer_style': 'ring',
+      'calendar_style': 'timeline',
     });
   }
 
