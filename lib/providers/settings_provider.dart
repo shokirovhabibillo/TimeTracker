@@ -13,9 +13,8 @@ class SettingsProvider extends ChangeNotifier {
   UserSettingsModel get settings => _settings;
   bool get isLoading => _isLoading;
 
-  AppThemeType get themeType => _settings.themeType == 'classic'
-      ? AppThemeType.classic
-      : AppThemeType.hightech;
+  ThemeSpec get themeSpec => AppTheme.specById(_settings.themeType);
+  ThemeData get themeData => themeSpec.data;
 
   Future<void> load() async {
     _settings = await _repository.getSettings();
@@ -23,9 +22,26 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setThemeType(AppThemeType type) async {
-    _settings = _settings.copyWith(
-        themeType: type == AppThemeType.classic ? 'classic' : 'hightech');
+  Future<void> setThemeId(String themeId) async {
+    _settings = _settings.copyWith(themeType: themeId);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setClockStyle(String style) async {
+    _settings = _settings.copyWith(clockStyle: style);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setTimerStyle(String style) async {
+    _settings = _settings.copyWith(timerStyle: style);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setCalendarStyle(String style) async {
+    _settings = _settings.copyWith(calendarStyle: style);
     notifyListeners();
     await _repository.saveSettings(_settings);
   }
