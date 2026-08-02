@@ -50,9 +50,21 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        release {
+            storeFile file("debug.keystore")
+            storePassword "focuslife123"
+            keyAlias "focuslifetracker"
+            keyPassword "focuslife123"
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            // Barqaror imzo — har bir GitHub Actions build'i BIR XIL
+            // kalit bilan imzolanadi, shu bois yangilanishlar
+            // avvalgi o'rnatilgan versiyani o'chirmasdan ustiga tushadi.
+            signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
         }
