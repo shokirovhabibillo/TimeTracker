@@ -49,13 +49,21 @@ class ListCalendar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text(timeFmt.format(task.startTime),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(task.title, style: const TextStyle(fontSize: 16)),
+                  SizedBox(
+                    width: 44,
+                    child: Text(timeFmt.format(task.startTime),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
-                  if (isActive) Icon(Icons.play_circle_fill, color: highlightColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      task.title,
+                      style: const TextStyle(fontSize: 14),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isActive) Icon(Icons.play_circle_fill, color: highlightColor, size: 18),
                 ],
               ),
             ),

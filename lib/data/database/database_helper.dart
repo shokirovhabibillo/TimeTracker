@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -33,6 +33,27 @@ class DatabaseHelper {
           "ALTER TABLE users_settings ADD COLUMN timer_style TEXT NOT NULL DEFAULT 'ring'");
       await db.execute(
           "ALTER TABLE users_settings ADD COLUMN calendar_style TEXT NOT NULL DEFAULT 'timeline'");
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+          "ALTER TABLE tasks ADD COLUMN rolled_over_count INTEGER NOT NULL DEFAULT 0");
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS lesson_plans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS lesson_segments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          lesson_plan_id INTEGER NOT NULL,
+          segment_type TEXT NOT NULL,
+          duration_minutes INTEGER NOT NULL,
+          order_index INTEGER NOT NULL,
+          FOREIGN KEY (lesson_plan_id) REFERENCES lesson_plans (id) ON DELETE CASCADE
+        );
+      ''');
     }
   }
 
@@ -63,7 +84,8 @@ class DatabaseHelper {
         is_recurring INTEGER NOT NULL DEFAULT 0,
         recurrence_rule TEXT,
         notification_offset_min INTEGER NOT NULL DEFAULT 10,
-        is_completed INTEGER NOT NULL DEFAULT 0
+        is_completed INTEGER NOT NULL DEFAULT 0,
+        rolled_over_count INTEGER NOT NULL DEFAULT 0
       );
     ''');
 
@@ -88,6 +110,25 @@ class DatabaseHelper {
         time_spent_seconds INTEGER NOT NULL,
         log_date TEXT NOT NULL,
         is_distracting INTEGER NOT NULL DEFAULT 0
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE lesson_plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE lesson_segments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lesson_plan_id INTEGER NOT NULL,
+        segment_type TEXT NOT NULL,
+        duration_minutes INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        FOREIGN KEY (lesson_plan_id) REFERENCES lesson_plans (id) ON DELETE CASCADE
       );
     ''');
 

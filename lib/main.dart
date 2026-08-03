@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/usage_provider.dart';
+import 'providers/lesson_timer_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'services/notification_service.dart';
 
@@ -23,6 +24,7 @@ class FocusLifeTrackerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()..load()),
         ChangeNotifierProvider(create: (_) => TaskProvider()..loadTasksForSelectedDay()),
         ChangeNotifierProvider(create: (_) => UsageProvider()),
+        ChangeNotifierProvider(create: (_) => LessonTimerProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {

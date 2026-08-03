@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
+import '../teacher/teacher_home_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -89,6 +90,16 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (v) => settings.setDistractionLimit(v.round()),
             ),
             trailing: Text('${settings.settings.dailyDistractionLimitMin} daq'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.school_outlined),
+            title: const Text("O'qituvchi rejasi"),
+            subtitle: const Text('Dars bosqichlari ketma-ketligi va taymeri'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
+            ),
           ),
           const Divider(),
           ListTile(

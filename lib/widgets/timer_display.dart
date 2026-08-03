@@ -141,6 +141,7 @@ class MediumClock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final handColor = Theme.of(context).colorScheme.onSurface;
     return StreamBuilder<DateTime>(
       stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
       initialData: DateTime.now(),
@@ -150,7 +151,7 @@ class MediumClock extends StatelessWidget {
           width: 120,
           height: 120,
           child: CustomPaint(
-            painter: _ClockPainter(time: now, accentColor: accentColor),
+            painter: _ClockPainter(time: now, accentColor: accentColor, handColor: handColor),
           ),
         );
       },
@@ -161,14 +162,15 @@ class MediumClock extends StatelessWidget {
 class _ClockPainter extends CustomPainter {
   final DateTime time;
   final Color accentColor;
-  _ClockPainter({required this.time, required this.accentColor});
+  final Color handColor;
+  _ClockPainter({required this.time, required this.accentColor, required this.handColor});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = size.width / 2;
 
-    final facePaint = Paint()..color = Colors.white.withOpacity(0.05);
+    final facePaint = Paint()..color = handColor.withOpacity(0.05);
     canvas.drawCircle(center, radius, facePaint);
 
     final rimPaint = Paint()
@@ -184,15 +186,15 @@ class _ClockPainter extends CustomPainter {
       final inner = Offset(center.dx + radius * 0.78 * sin(angle),
           center.dy - radius * 0.78 * cos(angle));
       canvas.drawLine(
-          inner, outer, Paint()..color = Colors.white.withOpacity(0.4)..strokeWidth = 1.5);
+          inner, outer, Paint()..color = handColor.withOpacity(0.4)..strokeWidth = 1.5);
     }
 
     final hourAngle = (time.hour % 12 + time.minute / 60) * pi / 6;
     final minuteAngle = (time.minute + time.second / 60) * pi / 30;
     final secondAngle = time.second * pi / 30;
 
-    _drawHand(canvas, center, hourAngle, radius * 0.5, 3, Colors.white);
-    _drawHand(canvas, center, minuteAngle, radius * 0.72, 2, Colors.white70);
+    _drawHand(canvas, center, hourAngle, radius * 0.5, 3, handColor);
+    _drawHand(canvas, center, minuteAngle, radius * 0.72, 2, handColor.withOpacity(0.75));
     _drawHand(canvas, center, secondAngle, radius * 0.8, 1, accentColor);
 
     canvas.drawCircle(center, 3, Paint()..color = accentColor);

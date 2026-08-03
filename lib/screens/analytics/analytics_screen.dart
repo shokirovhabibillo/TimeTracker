@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/models/app_usage_model.dart';
+import '../../data/repositories/task_repository.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/usage_provider.dart';
 import '../../widgets/progress_bar.dart';
@@ -15,6 +16,9 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  final TaskRepository _taskRepository = TaskRepository();
+  int? _rolloverCount;
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +30,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         final limit = context.read<SettingsProvider>().settings.dailyDistractionLimitMin;
         await usage.checkAndWarnIfOverLimit(limit);
       }
+      final count = await _taskRepository.getTotalRolloverCount();
+      if (mounted) setState(() => _rolloverCount = count);
     });
   }
 
@@ -54,50 +60,69 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Diqqat tahlili')),
-      body: !usage.isNativeSupported
-          ? const _UnsupportedPlatformNotice()
-          : !usage.hasPermission
-              ? _PermissionRequest(onGrant: () => usage.requestPermission())
-              : RefreshIndicator(
-                  onRefresh: usage.refresh,
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    final columns = constraints.maxWidth > 700 ? 3 : (constraints.maxWidth > 420 ? 2 : 1);
-                    return GridView(
-                      padding: const EdgeInsets.all(12),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 1.3,
-                      ),
-                      children: [
-                        _BentoCard(
-                          title: "Chalg'ituvchi ilovalar",
-                          child: _DistractionSummary(usage: usage, limit: limit, extras: extras),
-                        ),
-                        ..._categoriesGrouped(usage).entries.map(
-                              (e) => _BentoCard(
-                                title: _categoryLabel(e.key),
-                                child: Center(
-                                  child: Text('${e.value ~/ 60} daq',
-                                      style: Theme.of(context).textTheme.headlineSmall),
-                                ),
-                              ),
+      body: Column(
+        children: [
+          if (_rolloverCount != null && _rolloverCount! > 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: _BentoCard(
+                title: 'Kechiktirilgan vazifalar',
+                child: Row(
+                  children: [
+                    Icon(Icons.history_toggle_off, color: scheme.secondary),
+                    const SizedBox(width: 10),
+                    Text('$_rolloverCount marta ko\'chirilgan',
+                        style: Theme.of(context).textTheme.titleSmall),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: !usage.isNativeSupported
+                ? const _UnsupportedPlatformNotice()
+                : !usage.hasPermission
+                    ? _PermissionRequest(onGrant: () => usage.requestPermission())
+                    : RefreshIndicator(
+                        onRefresh: usage.refresh,
+                        child: LayoutBuilder(builder: (context, constraints) {
+                          final columns =
+                              constraints.maxWidth > 700 ? 3 : (constraints.maxWidth > 420 ? 2 : 1);
+                          return GridView(
+                            padding: const EdgeInsets.all(12),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: columns,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.3,
                             ),
-                        _BentoCard(
-                          title: 'Eng ko\'p ishlatilgan',
-                          span: true,
-                          child: Column(
-                            children: usage.todayUsage.take(6).map((u) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      u.isDistracting ? Icons.warning_amber : Icons.check_circle,
-                                      size: 16,
-                                      color: u.isDistracting ? extras.warningColor : Colors.green,
+                            children: [
+                              _BentoCard(
+                                title: "Chalg'ituvchi ilovalar",
+                                child: _DistractionSummary(usage: usage, limit: limit, extras: extras),
+                              ),
+                              ..._categoriesGrouped(usage).entries.map(
+                                    (e) => _BentoCard(
+                                      title: _categoryLabel(e.key),
+                                      child: Center(
+                                        child: Text('${e.value ~/ 60} daq',
+                                            style: Theme.of(context).textTheme.headlineSmall),
+                                      ),
                                     ),
+                                  ),
+                              _BentoCard(
+                                title: 'Eng ko\'p ishlatilgan',
+                                span: true,
+                                child: Column(
+                                  children: usage.todayUsage.take(6).map((u) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            u.isDistracting ? Icons.warning_amber : Icons.check_circle,
+                                            size: 16,
+                                            color: u.isDistracting ? extras.warningColor : Colors.green,
+                                          ),
                                     const SizedBox(width: 8),
                                     Expanded(child: Text(u.appName)),
                                     Text('${u.timeSpentSeconds ~/ 60} daq'),
@@ -111,6 +136,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     );
                   }),
                 ),
+          ),
+        ],
+      ),
     );
   }
 

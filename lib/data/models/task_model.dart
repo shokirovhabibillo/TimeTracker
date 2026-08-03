@@ -8,8 +8,15 @@ class TaskCategory {
   static const sleep = 'sleep';
   static const habit = 'habit';
   static const custom = 'custom';
+  static const laborLeave = 'labor_leave';
+  static const privilegedLeave = 'privileged_leave';
+  static const annualLeave = 'annual_leave';
 
-  static const all = [work, study, meal, sleep, habit, custom];
+  static const all = [
+    work, study, meal, sleep, habit,
+    laborLeave, privilegedLeave, annualLeave,
+    custom,
+  ];
 
   static String label(String category) {
     switch (category) {
@@ -23,6 +30,12 @@ class TaskCategory {
         return 'Uyqu';
       case habit:
         return 'Odat';
+      case laborLeave:
+        return 'Mehnat ta\'tili';
+      case privilegedLeave:
+        return 'Imtiyozli ta\'til';
+      case annualLeave:
+        return 'Yillik ta\'til (staj)';
       default:
         return 'Boshqa';
     }
@@ -40,6 +53,7 @@ class TaskModel {
   final String? recurrenceRule; // "DAILY" | "WEEKLY:MON,WED,FRI"
   final int notificationOffsetMin;
   final bool isCompleted;
+  final int rolledOverCount;
 
   TaskModel({
     this.id,
@@ -52,6 +66,7 @@ class TaskModel {
     this.recurrenceRule,
     this.notificationOffsetMin = 10,
     this.isCompleted = false,
+    this.rolledOverCount = 0,
   });
 
   int get durationMinutes => endTime.difference(startTime).inMinutes;
@@ -67,6 +82,7 @@ class TaskModel {
     String? recurrenceRule,
     int? notificationOffsetMin,
     bool? isCompleted,
+    int? rolledOverCount,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -79,6 +95,7 @@ class TaskModel {
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
       notificationOffsetMin: notificationOffsetMin ?? this.notificationOffsetMin,
       isCompleted: isCompleted ?? this.isCompleted,
+      rolledOverCount: rolledOverCount ?? this.rolledOverCount,
     );
   }
 
@@ -95,6 +112,7 @@ class TaskModel {
       'recurrence_rule': recurrenceRule,
       'notification_offset_min': notificationOffsetMin,
       'is_completed': isCompleted ? 1 : 0,
+      'rolled_over_count': rolledOverCount,
     };
   }
 
@@ -110,6 +128,7 @@ class TaskModel {
       recurrenceRule: map['recurrence_rule'] as String?,
       notificationOffsetMin: map['notification_offset_min'] as int? ?? 10,
       isCompleted: (map['is_completed'] as int? ?? 0) == 1,
+      rolledOverCount: map['rolled_over_count'] as int? ?? 0,
     );
   }
 }

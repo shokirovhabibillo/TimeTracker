@@ -11,11 +11,17 @@ class NavItem {
 /// circle that animates ("morphs") to the newly selected position.
 /// Renders as a horizontal pill (bottom bar) or vertical pill (side rail)
 /// depending on [axis] — the caller picks based on device orientation.
+///
+/// Both the indicator circle and the icons are positioned from the same
+/// slot-center calculation (slot index -> pixel center), so they always
+/// line up exactly regardless of item count.
 class MorphingNavBar extends StatelessWidget {
   final List<NavItem> items;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final Axis axis;
+  static const double indicatorSize = 48;
+  static const double slotSize = 56;
 
   const MorphingNavBar({
     super.key,
@@ -29,13 +35,13 @@ class MorphingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isHorizontal = axis == Axis.horizontal;
+    final count = items.length;
+
+    final barLength = slotSize * count;
 
     return Container(
       margin: EdgeInsets.all(isHorizontal ? 12 : 16),
-      padding: EdgeInsets.symmetric(
-        horizontal: isHorizontal ? 8 : 10,
-        vertical: isHorizontal ? 8 : 16,
-      ),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(28),
@@ -43,60 +49,50 @@ class MorphingNavBar extends StatelessWidget {
           BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
-      child: LayoutBuilder(builder: (context, constraints) {
-        final count = items.length;
-        final slotSize = isHorizontal
-            ? (constraints.maxWidth - 16) / count
-            : 56.0;
-
-        final indicator = AnimatedAlign(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeInOutCubic,
-          alignment: isHorizontal
-              ? Alignment(-1 + (2 / (count - 1)) * selectedIndex, 0)
-              : Alignment(0, -1 + (2 / (count - 1)) * selectedIndex),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
-          ),
-        );
-
-        final iconsList = List.generate(items.length, (i) {
-          final selected = i == selectedIndex;
-          final item = items[i];
-          return Expanded(
-            flex: isHorizontal ? 1 : 0,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => onSelected(i),
-              child: SizedBox(
-                width: isHorizontal ? null : slotSize,
-                height: isHorizontal ? 56 : slotSize,
-                child: Icon(
-                  selected ? item.selectedIcon : item.icon,
-                  color: selected ? scheme.onPrimary : scheme.onSurface.withOpacity(0.6),
-                ),
+      child: SizedBox(
+        width: isHorizontal ? barLength : slotSize,
+        height: isHorizontal ? slotSize : barLength,
+        child: Stack(
+          children: [
+            // Indicator circle — centered in the selected slot.
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeInOutCubic,
+              left: isHorizontal ? selectedIndex * slotSize + (slotSize - indicatorSize) / 2 : (slotSize - indicatorSize) / 2,
+              top: isHorizontal ? (slotSize - indicatorSize) / 2 : selectedIndex * slotSize + (slotSize - indicatorSize) / 2,
+              width: indicatorSize,
+              height: indicatorSize,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
               ),
             ),
-          );
-        });
-
-        final content = isHorizontal
-            ? Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: iconsList)
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: iconsList
-                    .map((w) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: w))
-                    .toList(),
+            // Icons — each centered in its own slot, same slot math as the indicator.
+            ...List.generate(count, (i) {
+              final selected = i == selectedIndex;
+              final item = items[i];
+              return Positioned(
+                left: isHorizontal ? i * slotSize : 0,
+                top: isHorizontal ? 0 : i * slotSize,
+                width: slotSize,
+                height: slotSize,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => onSelected(i),
+                    child: Center(
+                      child: Icon(
+                        selected ? item.selectedIcon : item.icon,
+                        color: selected ? scheme.onPrimary : scheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ),
+                ),
               );
-
-        return SizedBox(
-          height: isHorizontal ? 56 : null,
-          width: isHorizontal ? null : 56,
-          child: Stack(alignment: Alignment.center, children: [indicator, content]),
-        );
-      }),
+            }),
+          ],
+        ),
+      ),
     );
   }
 }

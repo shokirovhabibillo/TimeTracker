@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
@@ -82,6 +83,89 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
+          if (taskProvider.freeGaps.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: extras.warningColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: extras.warningColor.withOpacity(0.4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, size: 16, color: extras.warningColor),
+                        const SizedBox(width: 6),
+                        Text("Bo'sh vaqtlar aniqlandi",
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold, color: extras.warningColor)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ...taskProvider.freeGaps.map((g) {
+                      final fmt = DateFormat('HH:mm');
+                      final h = g.duration.inMinutes ~/ 60;
+                      final m = g.duration.inMinutes % 60;
+                      final durationText = h > 0 ? '${h} soat${m > 0 ? ' $m daq' : ''}' : '$m daqiqa';
+                      return Text('${fmt.format(g.start)}–${fmt.format(g.end)} ($durationText)',
+                          style: const TextStyle(fontSize: 12));
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          if (taskProvider.incompleteFromPast.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.pending_actions, size: 16, color: theme.colorScheme.secondary),
+                        const SizedBox(width: 6),
+                        Text("Bajarilmagan vazifalar (o'tgan kunlardan)",
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.secondary)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ...taskProvider.incompleteFromPast.map((task) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Text(task.title,
+                                      style: const TextStyle(fontSize: 13),
+                                      overflow: TextOverflow.ellipsis)),
+                              TextButton(
+                                onPressed: () => taskProvider.rolloverToSelectedDay(task),
+                                child: const Text("Bugunga ko'chirish", style: TextStyle(fontSize: 11)),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(height: 8),
           Expanded(
             child: taskProvider.isLoading
