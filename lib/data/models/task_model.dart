@@ -55,6 +55,7 @@ class TaskModel {
   final bool isCompleted;
   final int rolledOverCount;
   final String? completionStatus; // 'on_time' | 'late' | 'postponed'
+  final DateTime? recurrenceEndDate;
 
   TaskModel({
     this.id,
@@ -69,6 +70,7 @@ class TaskModel {
     this.isCompleted = false,
     this.rolledOverCount = 0,
     this.completionStatus,
+    this.recurrenceEndDate,
   });
 
   int get durationMinutes => endTime.difference(startTime).inMinutes;
@@ -86,6 +88,8 @@ class TaskModel {
     bool? isCompleted,
     int? rolledOverCount,
     String? completionStatus,
+    DateTime? recurrenceEndDate,
+    bool clearRecurrenceEndDate = false,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -100,6 +104,8 @@ class TaskModel {
       isCompleted: isCompleted ?? this.isCompleted,
       rolledOverCount: rolledOverCount ?? this.rolledOverCount,
       completionStatus: completionStatus ?? this.completionStatus,
+      recurrenceEndDate:
+          clearRecurrenceEndDate ? null : (recurrenceEndDate ?? this.recurrenceEndDate),
     );
   }
 
@@ -118,6 +124,7 @@ class TaskModel {
       'is_completed': isCompleted ? 1 : 0,
       'rolled_over_count': rolledOverCount,
       'completion_status': completionStatus,
+      'recurrence_end_date': recurrenceEndDate?.toIso8601String(),
     };
   }
 
@@ -135,6 +142,9 @@ class TaskModel {
       isCompleted: (map['is_completed'] as int? ?? 0) == 1,
       rolledOverCount: map['rolled_over_count'] as int? ?? 0,
       completionStatus: map['completion_status'] as String?,
+      recurrenceEndDate: map['recurrence_end_date'] != null
+          ? DateTime.parse(map['recurrence_end_date'] as String)
+          : null,
     );
   }
 }

@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -58,6 +58,13 @@ class DatabaseHelper {
     if (oldVersion < 4) {
       await db.execute("ALTER TABLE tasks ADD COLUMN completion_status TEXT");
     }
+    if (oldVersion < 5) {
+      await db.execute("ALTER TABLE tasks ADD COLUMN recurrence_end_date TEXT");
+    }
+    if (oldVersion < 6) {
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN background_pattern TEXT NOT NULL DEFAULT 'none'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -71,7 +78,8 @@ class DatabaseHelper {
         daily_distraction_limit_min INTEGER NOT NULL DEFAULT 90,
         clock_style TEXT NOT NULL DEFAULT 'analog',
         timer_style TEXT NOT NULL DEFAULT 'ring',
-        calendar_style TEXT NOT NULL DEFAULT 'timeline'
+        calendar_style TEXT NOT NULL DEFAULT 'timeline',
+        background_pattern TEXT NOT NULL DEFAULT 'none'
       );
     ''');;
 
@@ -89,7 +97,8 @@ class DatabaseHelper {
         notification_offset_min INTEGER NOT NULL DEFAULT 10,
         is_completed INTEGER NOT NULL DEFAULT 0,
         rolled_over_count INTEGER NOT NULL DEFAULT 0,
-        completion_status TEXT
+        completion_status TEXT,
+        recurrence_end_date TEXT
       );
     ''');
 
@@ -147,6 +156,7 @@ class DatabaseHelper {
       'clock_style': 'analog',
       'timer_style': 'ring',
       'calendar_style': 'timeline',
+      'background_pattern': 'none',
     });
   }
 

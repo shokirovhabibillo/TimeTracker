@@ -85,6 +85,7 @@ class TaskRepository {
       final task = TaskModel.fromMap(map);
       if (directIds.contains(task.id)) continue; // already covered above
       if (!_recurrenceMatchesDay(task.recurrenceRule, day)) continue;
+      if (task.recurrenceEndDate != null && day.isAfter(task.recurrenceEndDate!)) continue;
       final duration = task.endTime.difference(task.startTime);
       final newStart =
           DateTime(day.year, day.month, day.day, task.startTime.hour, task.startTime.minute);

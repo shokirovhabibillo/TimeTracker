@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
+import '../../widgets/patterned_background.dart';
 import '../teacher/teacher_home_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -64,6 +65,20 @@ class SettingsScreen extends StatelessWidget {
             value: settings.settings.calendarStyle,
             onChanged: settings.setCalendarStyle,
             neumorphic: neumorphic,
+          ),
+          const Divider(),
+          _SectionTitle('Orqa fon naqshi'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: BackgroundPatternType.values.map((p) {
+              final selected = settings.settings.backgroundPattern == p.name;
+              return ChoiceChip(
+                label: Text(p.label),
+                selected: selected,
+                onSelected: (_) => settings.setBackgroundPattern(p.name),
+              );
+            }).toList(),
           ),
           const Divider(),
           _SectionTitle('Uyqu vaqti'),

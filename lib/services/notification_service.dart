@@ -18,7 +18,7 @@ class NotificationService {
     tzdata.initializeTimeZones();
     try {
       final deviceTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(deviceTimezone.identifier));
+      tz.setLocalLocation(tz.getLocation(deviceTimezone));
     } catch (_) {
       // If detection fails for any reason, fall back to UTC rather than
       // crashing — notifications will still work, just anchored to UTC.

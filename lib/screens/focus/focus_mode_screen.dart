@@ -12,6 +12,7 @@ import '../../widgets/list_calendar.dart';
 import '../../widgets/mini_calendar.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/timer_display.dart';
+import '../../widgets/motivation_board.dart';
 
 /// Focus dashboard: header (task + progress), large stopwatch/pomodoro,
 /// clock, interactive calendar with active-task highlighting, keep-screen-on
@@ -213,15 +214,21 @@ class _LandscapeBody extends StatelessWidget {
         ),
         Expanded(
           flex: 5,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              timer,
-              const SizedBox(height: 16),
-              timerControls,
-              const SizedBox(height: 12),
-              clock,
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 8),
+                timer,
+                const SizedBox(height: 16),
+                timerControls,
+                const SizedBox(height: 12),
+                clock,
+                const SizedBox(height: 16),
+                const MotivationBoard(),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
         Expanded(
@@ -265,6 +272,8 @@ class _PortraitBody extends StatelessWidget {
           clock,
           const SizedBox(height: 12),
           controls,
+          const SizedBox(height: 16),
+          const MotivationBoard(),
           const SizedBox(height: 20),
           Align(
             alignment: Alignment.centerLeft,

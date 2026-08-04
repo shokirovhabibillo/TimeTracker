@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
 import '../../widgets/morphing_nav_bar.dart';
+import '../../widgets/patterned_background.dart';
 import '../analytics/analytics_screen.dart';
 import '../focus/focus_mode_screen.dart';
 import '../planner/planner_screen.dart';
@@ -49,16 +51,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final patternName = context.watch<SettingsProvider>().settings.backgroundPattern;
+    final pattern = BackgroundPatternType.values.firstWhere(
+      (p) => p.name == patternName,
+      orElse: () => BackgroundPatternType.none,
+    );
+
     return ChangeNotifierProvider(
       create: (_) => TimerProvider(),
       child: OrientationBuilder(builder: (context, orientation) {
         final isLandscape = orientation == Orientation.landscape;
 
-        // Fokus rejimi ekranining o'zi landscape'ni majburlaydi va o'z
-        // ichida boshqa navigatsiyani ko'rsatmaydi — shu holatda nav
-        // qatlamini butunlay yashiramiz, Fokus to'liq ekranni egallaydi.
+        // The Focus screen adapts its own internal layout to whatever
+        // orientation the device is actually in (see FocusModeScreen) —
+        // when it's the active tab in landscape, it takes the full
+        // screen and the app-level nav bar is hidden.
         if (isLandscape && _index == 1) {
-          return Scaffold(body: _screenAt(1));
+          return Scaffold(
+            body: PatternedBackground(pattern: pattern, child: _screenAt(1)),
+          );
         }
 
         final screens = List.generate(4, _screenAt);
@@ -71,19 +82,22 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         return Scaffold(
-          body: isLandscape
-              ? Row(
-                  children: [
-                    nav,
-                    Expanded(child: IndexedStack(index: _index, children: screens)),
-                  ],
-                )
-              : Column(
-                  children: [
-                    Expanded(child: IndexedStack(index: _index, children: screens)),
-                    nav,
-                  ],
-                ),
+          body: PatternedBackground(
+            pattern: pattern,
+            child: isLandscape
+                ? Row(
+                    children: [
+                      nav,
+                      Expanded(child: IndexedStack(index: _index, children: screens)),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      Expanded(child: IndexedStack(index: _index, children: screens)),
+                      nav,
+                    ],
+                  ),
+          ),
         );
       }),
     );

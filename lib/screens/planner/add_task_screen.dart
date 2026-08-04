@@ -37,6 +37,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String _recurrenceType = 'DAILY';
   final Set<String> _weeklyDays = {};
   late int _notificationOffset;
+  String? _durationUnit; // null = "Doim" (forever); else 'day'|'week'|'month'|'year'
+  int _durationCount = 1;
 
   @override
   void initState() {
@@ -54,6 +56,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _recurrenceType = 'WEEKLY';
       final days = e!.recurrenceRule!.split(':').last.split(',');
       _weeklyDays.addAll(days);
+    }
+    if (e?.recurrenceEndDate != null) {
+      final totalDays = e!.recurrenceEndDate!.difference(_start).inDays;
+      if (totalDays % 365 == 0 && totalDays > 0) {
+        _durationUnit = 'year';
+        _durationCount = totalDays ~/ 365;
+      } else if (totalDays % 30 == 0 && totalDays > 0) {
+        _durationUnit = 'month';
+        _durationCount = totalDays ~/ 30;
+      } else if (totalDays % 7 == 0 && totalDays > 0) {
+        _durationUnit = 'week';
+        _durationCount = totalDays ~/ 7;
+      } else if (totalDays > 0) {
+        _durationUnit = 'day';
+        _durationCount = totalDays;
+      }
     }
   }
 
@@ -89,6 +107,24 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     return 'WEEKLY:${_weeklyDays.join(',')}';
   }
 
+  DateTime? _buildRecurrenceEndDate() {
+    if (!_isRecurring || _durationUnit == null) return null;
+    switch (_durationUnit) {
+      case 'day':
+        return _start.add(Duration(days: _durationCount));
+      case 'week':
+        return _start.add(Duration(days: _durationCount * 7));
+      case 'month':
+        return DateTime(_start.year, _start.month + _durationCount, _start.day,
+            _start.hour, _start.minute);
+      case 'year':
+        return DateTime(_start.year + _durationCount, _start.month, _start.day,
+            _start.hour, _start.minute);
+      default:
+        return null;
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_isRecurring && _recurrenceType == 'WEEKLY' && _weeklyDays.isEmpty) {
@@ -109,6 +145,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       endTime: _end,
       isRecurring: _isRecurring,
       recurrenceRule: _buildRecurrenceRule(),
+      recurrenceEndDate: _buildRecurrenceEndDate(),
       notificationOffsetMin: _notificationOffset,
       isCompleted: widget.existing?.isCompleted ?? false,
     );
@@ -205,6 +242,65 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     );
                   }).toList(),
                 ),
+              const SizedBox(height: 12),
+              const Text('Davomiyligi (rejaning umumiy muddati)',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Doim'),
+                    selected: _durationUnit == null,
+                    onSelected: (_) => setState(() => _durationUnit = null),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Kun'),
+                    selected: _durationUnit == 'day',
+                    onSelected: (_) => setState(() => _durationUnit = 'day'),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Hafta'),
+                    selected: _durationUnit == 'week',
+                    onSelected: (_) => setState(() => _durationUnit = 'week'),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Oy'),
+                    selected: _durationUnit == 'month',
+                    onSelected: (_) => setState(() => _durationUnit = 'month'),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Yil'),
+                    selected: _durationUnit == 'year',
+                    onSelected: (_) => setState(() => _durationUnit = 'year'),
+                  ),
+                ],
+              ),
+              if (_durationUnit != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => setState(
+                          () => _durationCount = (_durationCount - 1).clamp(1, 999)),
+                    ),
+                    Text('$_durationCount', style: const TextStyle(fontSize: 16)),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => setState(
+                          () => _durationCount = (_durationCount + 1).clamp(1, 999)),
+                    ),
+                    const SizedBox(width: 8),
+                    Builder(builder: (context) {
+                      final end = _buildRecurrenceEndDate();
+                      if (end == null) return const SizedBox.shrink();
+                      return Text('Tugaydi: ${DateFormat('d MMM yyyy').format(end)}',
+                          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12));
+                    }),
+                  ],
+                ),
+              ],
             ],
             const Divider(height: 32),
             Text('Eslatma: boshlanishidan $_notificationOffset daqiqa oldin'),

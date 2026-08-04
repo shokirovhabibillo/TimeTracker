@@ -64,6 +64,7 @@ class UserSettingsModel {
   final String clockStyle; // "analog" | "digital"
   final String timerStyle; // "ring" | "big_digits"
   final String calendarStyle; // "timeline" | "list"
+  final String backgroundPattern; // BackgroundPatternType.name
 
   UserSettingsModel({
     this.id = 1,
@@ -75,6 +76,7 @@ class UserSettingsModel {
     this.clockStyle = 'analog',
     this.timerStyle = 'ring',
     this.calendarStyle = 'timeline',
+    this.backgroundPattern = 'none',
   });
 
   UserSettingsModel copyWith({
@@ -86,6 +88,7 @@ class UserSettingsModel {
     String? clockStyle,
     String? timerStyle,
     String? calendarStyle,
+    String? backgroundPattern,
   }) {
     return UserSettingsModel(
       id: id,
@@ -98,6 +101,7 @@ class UserSettingsModel {
       clockStyle: clockStyle ?? this.clockStyle,
       timerStyle: timerStyle ?? this.timerStyle,
       calendarStyle: calendarStyle ?? this.calendarStyle,
+      backgroundPattern: backgroundPattern ?? this.backgroundPattern,
     );
   }
 
@@ -112,6 +116,7 @@ class UserSettingsModel {
       'clock_style': clockStyle,
       'timer_style': timerStyle,
       'calendar_style': calendarStyle,
+      'background_pattern': backgroundPattern,
     };
   }
 
@@ -127,6 +132,7 @@ class UserSettingsModel {
       clockStyle: map['clock_style'] as String? ?? 'analog',
       timerStyle: map['timer_style'] as String? ?? 'ring',
       calendarStyle: map['calendar_style'] as String? ?? 'timeline',
+      backgroundPattern: map['background_pattern'] as String? ?? 'none',
     );
   }
 }
