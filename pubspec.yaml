@@ -26,6 +26,7 @@ dependencies:
   # Notifications
   flutter_local_notifications: ^17.2.2
   timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
 
   # Keep screen on
   wakelock_plus: ^1.2.5
