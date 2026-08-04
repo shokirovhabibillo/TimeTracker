@@ -27,6 +27,20 @@ class TaskRepository {
         where: 'id = ?', whereArgs: [id]);
   }
 
+  /// Records how a task was completed: 'on_time', 'late', or 'postponed'.
+  /// on_time/late mark it done; postponed leaves it incomplete (so it
+  /// still surfaces via getIncompleteTasksBefore for rollover).
+  Future<void> setCompletionStatus(int id, String status) async {
+    final db = await _dbHelper.database;
+    final isCompleted = status == 'on_time' || status == 'late';
+    await db.update(
+      'tasks',
+      {'completion_status': status, 'is_completed': isCompleted ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   static const Map<int, String> _weekdayAbbr = {
     1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT', 7: 'SUN',
   };

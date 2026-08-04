@@ -54,6 +54,7 @@ class TaskModel {
   final int notificationOffsetMin;
   final bool isCompleted;
   final int rolledOverCount;
+  final String? completionStatus; // 'on_time' | 'late' | 'postponed'
 
   TaskModel({
     this.id,
@@ -67,6 +68,7 @@ class TaskModel {
     this.notificationOffsetMin = 10,
     this.isCompleted = false,
     this.rolledOverCount = 0,
+    this.completionStatus,
   });
 
   int get durationMinutes => endTime.difference(startTime).inMinutes;
@@ -83,6 +85,7 @@ class TaskModel {
     int? notificationOffsetMin,
     bool? isCompleted,
     int? rolledOverCount,
+    String? completionStatus,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -96,6 +99,7 @@ class TaskModel {
       notificationOffsetMin: notificationOffsetMin ?? this.notificationOffsetMin,
       isCompleted: isCompleted ?? this.isCompleted,
       rolledOverCount: rolledOverCount ?? this.rolledOverCount,
+      completionStatus: completionStatus ?? this.completionStatus,
     );
   }
 
@@ -113,6 +117,7 @@ class TaskModel {
       'notification_offset_min': notificationOffsetMin,
       'is_completed': isCompleted ? 1 : 0,
       'rolled_over_count': rolledOverCount,
+      'completion_status': completionStatus,
     };
   }
 
@@ -129,6 +134,7 @@ class TaskModel {
       notificationOffsetMin: map['notification_offset_min'] as int? ?? 10,
       isCompleted: (map['is_completed'] as int? ?? 0) == 1,
       rolledOverCount: map['rolled_over_count'] as int? ?? 0,
+      completionStatus: map['completion_status'] as String?,
     );
   }
 }

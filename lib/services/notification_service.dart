@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
 
@@ -15,6 +16,13 @@ class NotificationService {
 
   Future<void> init() async {
     tzdata.initializeTimeZones();
+    try {
+      final deviceTimezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(deviceTimezone.identifier));
+    } catch (_) {
+      // If detection fails for any reason, fall back to UTC rather than
+      // crashing — notifications will still work, just anchored to UTC.
+    }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings(
@@ -36,13 +44,29 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
-  }
 
-  Future<void> requestPermissions() async {
+    // Low-importance (silent) channel for the persistent running-timer
+    // notification — no sound/vibration on each update, just a live
+    // on-screen chronometer while a focus session is active.
+    const timerChannel = AndroidNotificationChannel(
+      'focus_life_timer',
+      'Faol taymer',
+      description: "Pomodoro/stopwatch ishlayotganda doimiy ko'rsatiladi",
+      importance: Importance.low,
+      playSound: false,
+      enableVibration: false,
+    );
     await _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+        ?.createNotificationChannel(timerChannel);
+  }
+
+  Future<void> requestPermissions() async {
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.requestNotificationsPermission();
+    await androidPlugin?.requestExactAlarmsPermission();
     await _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
@@ -113,6 +137,69 @@ class NotificationService {
       details,
     );
   }
+
+  static const int _timerNotificationId = 424242;
+
+  /// Shows (or updates) a persistent, silent notification with a live
+  /// on-screen counter — visible on the lock screen and notification
+  /// shade even if the app is backgrounded. Uses Android's built-in
+  /// chronometer rendering, so the OS itself keeps it ticking; we don't
+  /// need to re-post it every second.
+  ///
+  /// [baseTime] is the reference instant: for a stopwatch counting UP,
+  /// pass the moment the session started; for a countdown, pass the
+  /// moment it will reach zero and set [countDown] to true.
+  Future<void> showRunningTimer({
+    required String title,
+    required DateTime baseTime,
+    bool countDown = false,
+  }) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'focus_life_timer',
+        'Faol taymer',
+        channelDescription: "Pomodoro/stopwatch ishlayotganda doimiy ko'rsatiladi",
+        importance: Importance.low,
+        priority: Priority.low,
+        ongoing: true,
+        autoCancel: false,
+        showWhen: true,
+        usesChronometer: true,
+        chronometerCountDown: countDown,
+        when: baseTime.millisecondsSinceEpoch,
+        playSound: false,
+        enableVibration: false,
+        visibility: NotificationVisibility.public,
+        category: AndroidNotificationCategory.stopwatch,
+      ),
+      iOS: const DarwinNotificationDetails(presentSound: false),
+    );
+    await _plugin.show(_timerNotificationId, title, null, details);
+  }
+
+  /// Freezes the notification at a fixed text (e.g. "Pauza qilingan —
+  /// 05:23") while the timer is paused — chronometer has no native pause,
+  /// so we swap to a plain static notification instead.
+  Future<void> showPausedTimer({required String title, required String frozenText}) async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'focus_life_timer',
+        'Faol taymer',
+        channelDescription: "Pomodoro/stopwatch ishlayotganda doimiy ko'rsatiladi",
+        importance: Importance.low,
+        priority: Priority.low,
+        ongoing: true,
+        autoCancel: false,
+        playSound: false,
+        enableVibration: false,
+        visibility: NotificationVisibility.public,
+      ),
+      iOS: DarwinNotificationDetails(presentSound: false),
+    );
+    await _plugin.show(_timerNotificationId, title, frozenText, details);
+  }
+
+  Future<void> cancelTimerNotification() => _plugin.cancel(_timerNotificationId);
 
   int _colorFromHex(String hex) {
     final cleaned = hex.replaceAll('#', '');

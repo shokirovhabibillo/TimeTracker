@@ -189,7 +189,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 initialDay: taskProvider.selectedDay,
                               ),
                             )),
-                            onToggleComplete: () => taskProvider.toggleCompleted(task),
+                            onSetStatus: (status) => taskProvider.setTaskCompletionStatus(task, status),
                             onDelete: () => taskProvider.deleteTask(task.id!),
                           );
                         },

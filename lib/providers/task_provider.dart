@@ -37,14 +37,39 @@ class TaskProvider extends ChangeNotifier {
   /// Idle windows of 60+ minutes between consecutive scheduled tasks —
   /// surfaced to the user as "you have free time here" warnings so gaps
   /// in the day's plan don't go unnoticed.
+  ///
+  /// Overlapping/nested tasks (e.g. a 10-minute "Tanaffus" sitting inside
+  /// an 08:00-17:50 "Ish" block) are merged into a single busy interval
+  /// first — otherwise the nested task's end time would be mistaken for
+  /// the end of all activity, and the still-ongoing outer task's
+  /// remaining time would be misreported as "free".
   List<TimeGap> get freeGaps {
     if (_tasksForDay.length < 2) return [];
     final sorted = [..._tasksForDay]..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    final busy = <TimeGap>[];
+    for (final t in sorted) {
+      if (busy.isEmpty) {
+        busy.add(TimeGap(t.startTime, t.endTime));
+        continue;
+      }
+      final last = busy.last;
+      if (!t.startTime.isAfter(last.end)) {
+        // Overlaps (or touches) the current busy block — extend it if
+        // this task runs later than what we already have.
+        if (t.endTime.isAfter(last.end)) {
+          busy[busy.length - 1] = TimeGap(last.start, t.endTime);
+        }
+      } else {
+        busy.add(TimeGap(t.startTime, t.endTime));
+      }
+    }
+
     final gaps = <TimeGap>[];
-    for (var i = 0; i < sorted.length - 1; i++) {
-      final gapStart = sorted[i].endTime;
-      final gapEnd = sorted[i + 1].startTime;
-      if (gapEnd.isAfter(gapStart) && gapEnd.difference(gapStart).inMinutes >= 60) {
+    for (var i = 0; i < busy.length - 1; i++) {
+      final gapStart = busy[i].end;
+      final gapEnd = busy[i + 1].start;
+      if (gapEnd.difference(gapStart).inMinutes >= 60) {
         gaps.add(TimeGap(gapStart, gapEnd));
       }
     }
@@ -107,6 +132,11 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> toggleCompleted(TaskModel task) async {
     await _repository.setCompleted(task.id!, !task.isCompleted);
+    await loadTasksForSelectedDay();
+  }
+
+  Future<void> setTaskCompletionStatus(TaskModel task, String status) async {
+    await _repository.setCompletionStatus(task.id!, status);
     await loadTasksForSelectedDay();
   }
 }

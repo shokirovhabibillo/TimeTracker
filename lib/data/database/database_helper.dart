@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -55,6 +55,9 @@ class DatabaseHelper {
         );
       ''');
     }
+    if (oldVersion < 4) {
+      await db.execute("ALTER TABLE tasks ADD COLUMN completion_status TEXT");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -85,7 +88,8 @@ class DatabaseHelper {
         recurrence_rule TEXT,
         notification_offset_min INTEGER NOT NULL DEFAULT 10,
         is_completed INTEGER NOT NULL DEFAULT 0,
-        rolled_over_count INTEGER NOT NULL DEFAULT 0
+        rolled_over_count INTEGER NOT NULL DEFAULT 0,
+        completion_status TEXT
       );
     ''');
 

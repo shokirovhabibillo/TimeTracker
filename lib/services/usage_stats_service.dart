@@ -59,6 +59,53 @@ class UsageStatsService {
     AppCategory.entertainment,
   };
 
+  static const Map<String, String> _knownAppNames = {
+    'com.instagram.android': 'Instagram',
+    'com.facebook.katana': 'Facebook',
+    'com.facebook.lite': 'Facebook Lite',
+    'com.twitter.android': 'X (Twitter)',
+    'com.zhiliaoapp.musically': 'TikTok',
+    'com.ss.android.ugc.trill': 'TikTok',
+    'com.snapchat.android': 'Snapchat',
+    'com.google.android.gm': 'Gmail',
+    'com.google.android.youtube': 'YouTube',
+    'com.google.android.apps.maps': 'Google Maps',
+    'com.google.android.apps.docs': 'Google Drive',
+    'com.google.android.calendar': 'Google Calendar',
+    'com.android.chrome': 'Chrome',
+    'org.mozilla.firefox': 'Firefox',
+    'com.whatsapp': 'WhatsApp',
+    'org.telegram.messenger': 'Telegram',
+    'com.ghisler.android.TotalCommander': 'Total Commander',
+    'com.tarteel.tarteel': 'Tarteel',
+    'com.tarteelai.tarteel': 'Tarteel',
+    'com.netflix.mediaclient': 'Netflix',
+    'com.spotify.music': 'Spotify',
+    'com.microsoft.office.outlook': 'Outlook',
+    'com.slack': 'Slack',
+    'com.discord': 'Discord',
+    'com.supercell.clashofclans': 'Clash of Clans',
+    'com.king.candycrushsaga': 'Candy Crush',
+  };
+
+  /// Best-effort human-readable app name from a package id. Prefers the
+  /// known-apps table above; otherwise strips common namespace noise
+  /// (com/org/android/app/google/...) so "com.google.android.gm" doesn't
+  /// turn into the meaningless "gm" — falls back to a capitalized guess.
+  String _friendlyAppName(String pkg) {
+    final known = _knownAppNames[pkg];
+    if (known != null) return known;
+
+    const skipSegments = {
+      'com', 'org', 'net', 'io', 'android', 'app', 'apps', 'mobile', 'google',
+    };
+    final parts = pkg.split('.');
+    final candidates = parts.where((p) => !skipSegments.contains(p.toLowerCase())).toList();
+    final chosen = (candidates.isNotEmpty ? candidates.last : parts.last).trim();
+    if (chosen.isEmpty) return pkg;
+    return chosen[0].toUpperCase() + chosen.substring(1);
+  }
+
   String categoryFor(String packageName) =>
       _knownCategories[packageName] ?? AppCategory.other;
 
@@ -84,7 +131,7 @@ class UsageStatsService {
       final category = categoryFor(pkg);
       final usage = AppUsageModel(
         packageName: pkg,
-        appName: pkg.split('.').last,
+        appName: _friendlyAppName(pkg),
         appCategory: category,
         timeSpentSeconds: totalMs ~/ 1000,
         logDate: startOfDay,

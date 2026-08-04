@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
@@ -39,36 +38,13 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.isActive) _lockLandscape();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().refreshActiveTask();
     });
   }
 
   @override
-  void didUpdateWidget(covariant FocusModeScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !oldWidget.isActive) {
-      _lockLandscape();
-    } else if (!widget.isActive && oldWidget.isActive) {
-      _unlockOrientation();
-    }
-  }
-
-  void _lockLandscape() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
-
-  void _unlockOrientation() {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-  }
-
-  @override
   void dispose() {
-    if (widget.isActive) _unlockOrientation();
     if (_keepScreenOn) ScreenWakeService.disable();
     AudioService.instance.stop();
     super.dispose();

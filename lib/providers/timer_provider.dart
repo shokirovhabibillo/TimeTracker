@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/models/focus_session_model.dart';
 import '../data/models/task_model.dart';
 import '../data/repositories/focus_session_repository.dart';
+import '../services/notification_service.dart';
 
 enum TimerMode { stopwatch, pomodoro }
 
@@ -51,7 +52,19 @@ class TimerProvider extends ChangeNotifier {
 
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _showLiveNotification();
     notifyListeners();
+  }
+
+  void _showLiveNotification() {
+    final title = _task?.title ?? 'Fokus taymeri';
+    if (mode == TimerMode.pomodoro) {
+      final target = DateTime.now().add(pomodoroRemaining);
+      NotificationService.instance.showRunningTimer(title: title, baseTime: target, countDown: true);
+    } else {
+      final base = DateTime.now().subtract(elapsed);
+      NotificationService.instance.showRunningTimer(title: title, baseTime: base, countDown: false);
+    }
   }
 
   void _tick() {
@@ -63,6 +76,7 @@ class TimerProvider extends ChangeNotifier {
         isPomodoroBreak = !isPomodoroBreak;
         pomodoroRemaining = Duration(
             minutes: isPomodoroBreak ? pomodoroBreakMinutes : pomodoroFocusMinutes);
+        _showLiveNotification();
       }
     }
     notifyListeners();
@@ -72,6 +86,10 @@ class TimerProvider extends ChangeNotifier {
     if (status != TimerStatus.running) return;
     _ticker?.cancel();
     status = TimerStatus.paused;
+    NotificationService.instance.showPausedTimer(
+      title: _task?.title ?? 'Fokus taymeri',
+      frozenText: "Pauza qilingan — ${mode == TimerMode.pomodoro ? formattedPomodoro : formattedElapsed}",
+    );
     notifyListeners();
   }
 
@@ -79,12 +97,14 @@ class TimerProvider extends ChangeNotifier {
     if (status != TimerStatus.paused) return;
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     status = TimerStatus.running;
+    _showLiveNotification();
     notifyListeners();
   }
 
   Future<void> stop({bool markCompleted = false}) async {
     _ticker?.cancel();
     status = TimerStatus.finished;
+    NotificationService.instance.cancelTimerNotification();
 
     if (_sessionId != null && _task != null) {
       final plannedSeconds = _task!.durationMinutes * 60;
@@ -103,6 +123,7 @@ class TimerProvider extends ChangeNotifier {
 
   void reset() {
     _ticker?.cancel();
+    NotificationService.instance.cancelTimerNotification();
     status = TimerStatus.idle;
     elapsed = Duration.zero;
     pomodoroRemaining = const Duration(minutes: pomodoroFocusMinutes);

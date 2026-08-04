@@ -1,6 +1,8 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'noise_generator.dart';
+
 class WhiteNoiseTrack {
   final String id;
   final String label;
@@ -35,7 +37,8 @@ class AudioService {
         orElse: () => tracks.first);
     await _player.setReleaseMode(ReleaseMode.loop);
     await _player.setVolume(_volume);
-    await _player.play(AssetSource(track.assetPath));
+    final path = await NoiseGenerator.fileFor(track.id);
+    await _player.play(DeviceFileSource(path));
     _currentTrackId = trackId;
   }
 

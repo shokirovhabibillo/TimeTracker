@@ -11,6 +11,7 @@ import 'services/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.init();
+  await NotificationService.instance.requestPermissions();
   runApp(const FocusLifeTrackerApp());
 }
 
