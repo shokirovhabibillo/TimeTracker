@@ -137,6 +137,13 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
       body: SafeArea(
         child: OrientationBuilder(builder: (context, orientation) {
           final isLandscape = orientation == Orientation.landscape;
+          // The motivation board (duas/hadiths/stories) is meant for
+          // break/idle moments, not while actively focusing — showing it
+          // only when the timer is paused/idle/finished, or during a
+          // Pomodoro break, keeps it from being a constant distraction.
+          final showMotivation = timerProvider.status != TimerStatus.running ||
+              (timerProvider.mode == TimerMode.pomodoro && timerProvider.isPomodoroBreak);
+
           return Column(
             children: [
               _Header(task: activeTask, progress: taskProvider.dayProgress, accent: accent),
@@ -151,6 +158,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                         dayProgress: taskProvider.dayProgress,
                         highlight: highlight,
                         calmMode: extras.calmMode,
+                        showMotivation: showMotivation,
                       )
                     : _PortraitBody(
                         calendar: calendar,
@@ -161,6 +169,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                         dayProgress: taskProvider.dayProgress,
                         highlight: highlight,
                         calmMode: extras.calmMode,
+                        showMotivation: showMotivation,
                       ),
               ),
             ],
@@ -176,6 +185,7 @@ class _LandscapeBody extends StatelessWidget {
   final double dayProgress;
   final Color highlight;
   final bool calmMode;
+  final bool showMotivation;
   const _LandscapeBody({
     required this.calendar,
     required this.timer,
@@ -185,6 +195,7 @@ class _LandscapeBody extends StatelessWidget {
     required this.dayProgress,
     required this.highlight,
     required this.calmMode,
+    required this.showMotivation,
   });
 
   @override
@@ -224,8 +235,10 @@ class _LandscapeBody extends StatelessWidget {
                 timerControls,
                 const SizedBox(height: 12),
                 clock,
-                const SizedBox(height: 16),
-                const MotivationBoard(),
+                if (showMotivation) ...[
+                  const SizedBox(height: 16),
+                  const MotivationBoard(),
+                ],
                 const SizedBox(height: 8),
               ],
             ),
@@ -248,6 +261,7 @@ class _PortraitBody extends StatelessWidget {
   final double dayProgress;
   final Color highlight;
   final bool calmMode;
+  final bool showMotivation;
   const _PortraitBody({
     required this.calendar,
     required this.timer,
@@ -257,6 +271,7 @@ class _PortraitBody extends StatelessWidget {
     required this.dayProgress,
     required this.highlight,
     required this.calmMode,
+    required this.showMotivation,
   });
 
   @override
@@ -272,8 +287,10 @@ class _PortraitBody extends StatelessWidget {
           clock,
           const SizedBox(height: 12),
           controls,
-          const SizedBox(height: 16),
-          const MotivationBoard(),
+          if (showMotivation) ...[
+            const SizedBox(height: 16),
+            const MotivationBoard(),
+          ],
           const SizedBox(height: 20),
           Align(
             alignment: Alignment.centerLeft,
@@ -343,7 +360,9 @@ class _CompactControls extends StatelessWidget {
         ),
         for (final entry in _trackIcons.entries)
           Tooltip(
-            message: entry.key,
+            message: AudioService.tracks
+                .firstWhere((t) => t.id == entry.key, orElse: () => AudioService.tracks.first)
+                .label,
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: () => onToggleTrack(entry.key),

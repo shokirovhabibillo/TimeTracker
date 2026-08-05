@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/task_model.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/mini_calendar.dart';
+import '../../widgets/percentage_ring.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/radial_quick_add.dart';
 import '../../widgets/task_tile.dart';
@@ -71,15 +72,28 @@ class _PlannerScreenState extends State<PlannerScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
+                PercentageRing(
+                  value: taskProvider.dayProgress,
+                  color: theme.colorScheme.primary,
+                  glow: extras.glowEnabled,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: AppProgressBar(
-                    value: taskProvider.dayProgress,
-                    color: theme.colorScheme.primary,
-                    glow: extras.glowEnabled,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Bugungi bajarilish',
+                          style: TextStyle(fontSize: 12, color: theme.hintColor)),
+                      const SizedBox(height: 4),
+                      AppProgressBar(
+                        value: taskProvider.dayProgress,
+                        color: theme.colorScheme.primary,
+                        glow: extras.glowEnabled,
+                        height: 6,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text('${(taskProvider.dayProgress * 100).round()}%'),
               ],
             ),
           ),

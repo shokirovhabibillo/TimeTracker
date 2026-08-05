@@ -10,30 +10,50 @@ import 'package:path_provider/path_provider.dart';
 class NoiseGenerator {
   static final Random _rand = Random();
   static const int _sampleRate = 44100;
-  static const int _seconds = 6;
+  static const int _seconds = 12;
+
+  // Bumping this invalidates any previously cached (older, harsher-
+  // sounding) files from earlier app versions so the improved synthesis
+  // actually gets used instead of a stale cached file.
+  static const String _version = 'v2';
 
   static Future<String> fileFor(String trackId) async {
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/noise_$trackId.wav');
+    final file = File('${dir.path}/noise_${_version}_$trackId.wav');
     if (await file.exists() && await file.length() > 44) {
       return file.path;
     }
     final samples = switch (trackId) {
       'white_noise' => _generateWhite(),
       'brown_noise' => _generateBrown(),
-      'rain' => _generateRain(),
-      'forest' => _generateForest(),
+      'rain' => _generateWater(),
+      'forest' => _generateBirds(),
       _ => _generateWhite(),
     };
+    _crossfadeLoop(samples);
     await file.writeAsBytes(_wavBytes(samples));
     return file.path;
+  }
+
+  /// Blends the last ~300ms into the first ~300ms so the loop point is
+  /// inaudible instead of producing a click/pop every time it repeats.
+  static void _crossfadeLoop(Int16List samples) {
+    final fadeLen = (_sampleRate * 0.3).round();
+    if (samples.length <= fadeLen * 2) return;
+    for (var i = 0; i < fadeLen; i++) {
+      final t = i / fadeLen; // 0..1
+      final headIdx = i;
+      final tailIdx = samples.length - fadeLen + i;
+      final blended = samples[tailIdx] * (1 - t) + samples[headIdx] * t;
+      samples[headIdx] = blended.round().clamp(-32768, 32767);
+    }
   }
 
   static Int16List _generateWhite() {
     final n = _seconds * _sampleRate;
     final samples = Int16List(n);
     for (var i = 0; i < n; i++) {
-      samples[i] = ((_rand.nextDouble() * 2 - 1) * 7000).round();
+      samples[i] = ((_rand.nextDouble() * 2 - 1) * 5000).round();
     }
     return samples;
   }
@@ -43,49 +63,92 @@ class NoiseGenerator {
     final samples = Int16List(n);
     double last = 0;
     for (var i = 0; i < n; i++) {
-      final white = (_rand.nextDouble() * 2 - 1) * 0.08;
+      final white = (_rand.nextDouble() * 2 - 1) * 0.06;
       last = (last + white).clamp(-1.0, 1.0);
-      samples[i] = (last * 12000).round();
+      samples[i] = (last * 9000).round();
     }
     return samples;
   }
 
-  static Int16List _generateRain() {
+  /// Gentle flowing-water / stream babble: a soft filtered noise bed
+  /// with slow amplitude swells, plus scattered short "bubble" blips
+  /// (quick damped tone pops) — much softer and more pleasant than raw
+  /// static.
+  static Int16List _generateWater() {
     final n = _seconds * _sampleRate;
     final samples = Int16List(n);
     double last = 0;
     for (var i = 0; i < n; i++) {
-      final white = (_rand.nextDouble() * 2 - 1) * 0.05;
+      final white = (_rand.nextDouble() * 2 - 1) * 0.04;
       last = (last + white).clamp(-1.0, 1.0);
-      double v = last * 6000;
-      if (_rand.nextDouble() < 0.0006) {
-        v += (_rand.nextDouble() * 2 - 1) * 9000; // occasional droplet
+      // Slow swelling envelope so it "breathes" like flowing water
+      // rather than a flat hiss.
+      final swell = 0.7 + 0.3 * sin(2 * pi * i / (_sampleRate * 4.0));
+      samples[i] = (last * 3200 * swell).round().clamp(-32768, 32767);
+    }
+    // Soft bubble blips: short damped sine pops at a comfortable pitch.
+    final bubbleCount = _seconds * 3;
+    for (var c = 0; c < bubbleCount; c++) {
+      final start = _rand.nextInt(n - 1200);
+      final freq = 500 + _rand.nextDouble() * 700;
+      const len = 900;
+      for (var j = 0; j < len && start + j < n; j++) {
+        final decay = exp(-j / (len * 0.25));
+        final s = sin(2 * pi * freq * j / _sampleRate) * decay * 2600;
+        samples[start + j] = (samples[start + j] + s).round().clamp(-32768, 32767);
       }
-      samples[i] = v.clamp(-32768, 32767).round();
     }
     return samples;
   }
 
-  static Int16List _generateForest() {
+  /// Natural-sounding birdsong: a very quiet ambient bed with sparse,
+  /// varied chirps built from short pitch sweeps (mimicking a sparrow's
+  /// trill, a starling's warble, and a nightingale-style rising call)
+  /// instead of a single flat tone.
+  static Int16List _generateBirds() {
     final n = _seconds * _sampleRate;
     final samples = Int16List(n);
     double last = 0;
     for (var i = 0; i < n; i++) {
-      final white = (_rand.nextDouble() * 2 - 1) * 0.03;
+      final white = (_rand.nextDouble() * 2 - 1) * 0.015;
       last = (last + white).clamp(-1.0, 1.0);
-      samples[i] = (last * 4000).round();
+      samples[i] = (last * 1200).round();
     }
-    // A handful of soft bird-like chirps scattered through the loop.
-    for (var c = 0; c < _seconds * 2; c++) {
-      final start = _rand.nextInt(n - 3000);
-      final freq = 1500 + _rand.nextDouble() * 1500;
-      for (var j = 0; j < 3000 && start + j < n; j++) {
-        final env = sin(pi * j / 3000);
-        final s = sin(2 * pi * freq * j / _sampleRate) * env * 3000;
-        samples[start + j] = (samples[start + j] + s).clamp(-32768, 32767).round();
+
+    final callCount = _seconds ~/ 2;
+    for (var c = 0; c < callCount; c++) {
+      final callType = _rand.nextInt(3);
+      final start = _rand.nextInt(n - 6000);
+      switch (callType) {
+        case 0: // quick upward chirp (sparrow-like)
+          _writeSweep(samples, n, start, 2200, 3400, 1400, 2600);
+          break;
+        case 1: // trill: a few rapid short notes (starling-like)
+          for (var t = 0; t < 4; t++) {
+            final s = start + t * 900;
+            _writeSweep(samples, n, s, 1800 + t * 120, 2400 + t * 120, 600, 2400);
+          }
+          break;
+        case 2: // slow rising warble (nightingale-like)
+          _writeSweep(samples, n, start, 1200, 2800, 3200, 2200);
+          break;
       }
     }
     return samples;
+  }
+
+  /// Writes a short frequency sweep from [f0] to [f1] Hz, [durationSamples]
+  /// long, starting at [start], with a smooth fade-in/out envelope.
+  static void _writeSweep(
+      Int16List samples, int n, int start, double f0, double f1, int durationSamples, double amplitude) {
+    for (var j = 0; j < durationSamples && start + j < n; j++) {
+      final t = j / durationSamples;
+      final freq = f0 + (f1 - f0) * t;
+      final env = sin(pi * t); // fade in then out
+      final s = sin(2 * pi * freq * j / _sampleRate) * env * amplitude;
+      final idx = start + j;
+      samples[idx] = (samples[idx] + s).round().clamp(-32768, 32767);
+    }
   }
 
   static Uint8List _wavBytes(Int16List samples) {

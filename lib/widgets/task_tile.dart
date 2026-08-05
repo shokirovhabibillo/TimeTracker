@@ -7,7 +7,7 @@ class TaskTile extends StatelessWidget {
   final TaskModel task;
   final VoidCallback onTap;
   final ValueChanged<String> onSetStatus;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const TaskTile({
     super.key,
@@ -48,9 +48,17 @@ class TaskTile extends StatelessWidget {
     }
   }
 
+  bool get _isFutureDay {
+    final taskDate = DateTime(task.startTime.year, task.startTime.month, task.startTime.day);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return taskDate.isAfter(today);
+  }
+
   @override
   Widget build(BuildContext context) {
     final timeFmt = DateFormat('HH:mm');
+    final futureDay = _isFutureDay;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
@@ -77,23 +85,46 @@ class TaskTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PopupMenuButton<String>(
-              icon: Icon(_statusIcon, color: _statusColor(context)),
-              tooltip: 'Bajarilish holati',
-              onSelected: onSetStatus,
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'on_time', child: Text('Vaqtida bajardi')),
-                PopupMenuItem(value: 'late', child: Text('Kechroq bajardim')),
-                PopupMenuItem(value: 'postponed', child: Text('Keyinga qoldirildi')),
-              ],
-            ),
+            futureDay
+                ? Tooltip(
+                    message: "Kelgusi kun — hali belgilab bo'lmaydi",
+                    child: Icon(Icons.radio_button_unchecked,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                  )
+                : PopupMenuButton<String>(
+                    icon: Icon(_statusIcon, color: _statusColor(context)),
+                    tooltip: 'Bajarilish holati',
+                    onSelected: onSetStatus,
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'on_time', child: Text('Vaqtida bajardi')),
+                      const PopupMenuItem(value: 'late', child: Text('Kechroq bajardim')),
+                      const PopupMenuItem(value: 'postponed', child: Text('Keyinga qoldirildi')),
+                      if (task.completionStatus != null)
+                        const PopupMenuItem(value: 'none', child: Text('Bekor qilish')),
+                    ],
+                  ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: onDelete,
+              onPressed: () => _confirmDelete(context),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Vazifani o'chirish"),
+        content: Text('"${task.title}" o\'chirilsinmi?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text("Yo'q")),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Ha')),
+        ],
+      ),
+    );
+    if (confirmed == true) await onDelete();
   }
 }

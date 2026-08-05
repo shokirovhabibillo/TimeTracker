@@ -30,8 +30,18 @@ class TaskRepository {
   /// Records how a task was completed: 'on_time', 'late', or 'postponed'.
   /// on_time/late mark it done; postponed leaves it incomplete (so it
   /// still surfaces via getIncompleteTasksBefore for rollover).
+  /// Passing 'none' clears any previously set status.
   Future<void> setCompletionStatus(int id, String status) async {
     final db = await _dbHelper.database;
+    if (status == 'none') {
+      await db.update(
+        'tasks',
+        {'completion_status': null, 'is_completed': 0},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      return;
+    }
     final isCompleted = status == 'on_time' || status == 'late';
     await db.update(
       'tasks',

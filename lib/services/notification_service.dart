@@ -38,7 +38,10 @@ class NotificationService {
       'focus_life_tasks',
       'Vazifa eslatmalari',
       description: 'Rejalashtirilgan vazifalar, uyqu va odatlar uchun eslatmalar',
-      importance: Importance.high,
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
     );
     await _plugin
         .resolvePlatformSpecificImplementation<
@@ -87,8 +90,10 @@ class NotificationService {
         'Vazifa eslatmalari',
         channelDescription:
             'Rejalashtirilgan vazifalar, uyqu va odatlar uchun eslatmalar',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
         color: Color(_colorFromHex(task.colorCode)),
       ),
       iOS: const DarwinNotificationDetails(),

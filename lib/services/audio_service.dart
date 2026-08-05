@@ -24,8 +24,8 @@ class AudioService {
 
   static const tracks = [
     WhiteNoiseTrack('white_noise', 'Oq shovqin', 'sounds/white_noise.mp3'),
-    WhiteNoiseTrack('rain', 'Yomg\'ir', 'sounds/rain.mp3'),
-    WhiteNoiseTrack('forest', "O'rmon", 'sounds/forest.mp3'),
+    WhiteNoiseTrack('rain', 'Suv shildirashi', 'sounds/rain.mp3'),
+    WhiteNoiseTrack('forest', 'Qushlar sayrashi', 'sounds/forest.mp3'),
     WhiteNoiseTrack('brown_noise', 'Jigarrang shovqin', 'sounds/brown_noise.mp3'),
   ];
 
