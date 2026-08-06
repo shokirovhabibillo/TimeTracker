@@ -156,6 +156,8 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: task.isRecurring
           ? (task.recurrenceRule == 'DAILY'
               ? DateTimeComponents.time
