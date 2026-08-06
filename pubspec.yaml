@@ -37,6 +37,9 @@ dependencies:
   # Permissions (notifications, usage access)
   permission_handler: ^11.3.1
 
+  # Opening external links (contact, other apps) from the News screen
+  url_launcher: ^6.3.1
+
   # Native "Screen Time" style usage stats (Android UsageStatsManager wrapper)
   usage_stats: ^2.0.1
 
