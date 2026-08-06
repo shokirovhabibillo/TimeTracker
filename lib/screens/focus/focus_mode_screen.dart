@@ -99,31 +99,59 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
             neonStyle: extras.glowEnabled,
           );
 
-    final timer = settings.settings.timerStyle == 'big_digits'
-        ? BigDigitTimerDisplay(
-            timeText: timerProvider.mode == TimerMode.pomodoro
-                ? timerProvider.formattedPomodoro
-                : timerProvider.formattedElapsed,
-            accentColor: accent,
-            subtitle: activeTask?.title ?? "Vazifa tanlanmagan",
-          )
-        : TimerDisplay(
-            timeText: timerProvider.mode == TimerMode.pomodoro
-                ? timerProvider.formattedPomodoro
-                : timerProvider.formattedElapsed,
-            progress: timerProvider.mode == TimerMode.pomodoro
-                ? 1 -
-                    (timerProvider.pomodoroRemaining.inSeconds /
-                        (TimerProvider.pomodoroFocusMinutes * 60))
-                : timerProvider.progressAgainstPlan,
-            accentColor: accent,
-            subtitle: activeTask?.title ?? "Vazifa tanlanmagan",
-            neonStyle: extras.glowEnabled,
-          );
+    final timerTimeText = timerProvider.mode == TimerMode.pomodoro
+        ? timerProvider.formattedPomodoro
+        : timerProvider.formattedElapsed;
+    final timerProgressValue = timerProvider.mode == TimerMode.pomodoro
+        ? 1 -
+            (timerProvider.pomodoroRemaining.inSeconds /
+                (TimerProvider.pomodoroFocusMinutes * 60))
+        : timerProvider.progressAgainstPlan;
+    final timerSubtitle = activeTask?.title ?? "Vazifa tanlanmagan";
 
-    final clock = settings.settings.clockStyle == 'digital'
-        ? DigitalClock(accentColor: accent)
-        : MediumClock(accentColor: accent);
+    final Widget timer;
+    switch (settings.settings.timerStyle) {
+      case 'big_digits':
+        timer = BigDigitTimerDisplay(
+            timeText: timerTimeText, accentColor: accent, subtitle: timerSubtitle);
+        break;
+      case 'hourglass':
+        timer = HourglassTimerDisplay(
+            timeText: timerTimeText,
+            progress: timerProgressValue,
+            accentColor: accent,
+            subtitle: timerSubtitle);
+        break;
+      case 'flip':
+        timer = FlipTimerDisplay(timeText: timerTimeText, accentColor: accent, subtitle: timerSubtitle);
+        break;
+      default:
+        timer = TimerDisplay(
+          timeText: timerTimeText,
+          progress: timerProgressValue,
+          accentColor: accent,
+          subtitle: timerSubtitle,
+          neonStyle: extras.glowEnabled,
+        );
+    }
+
+    final Widget clock;
+    switch (settings.settings.clockStyle) {
+      case 'digital':
+        clock = DigitalClock(accentColor: accent);
+        break;
+      case 'smartwatch_round':
+        clock = SmartWatchRoundClock(accentColor: accent);
+        break;
+      case 'smartwatch_square':
+        clock = SmartWatchSquareClock(accentColor: accent);
+        break;
+      case 'kurant':
+        clock = KurantClock(accentColor: accent);
+        break;
+      default:
+        clock = MediumClock(accentColor: accent);
+    }
 
     final controls = _CompactControls(
       keepScreenOn: _keepScreenOn,

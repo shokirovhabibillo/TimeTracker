@@ -6,6 +6,7 @@ import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
 import '../../widgets/patterned_background.dart';
+import '../news/news_contact_screen.dart';
 import '../teacher/teacher_home_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -47,14 +48,25 @@ class SettingsScreen extends StatelessWidget {
           _SectionTitle('Ko\'rinish variantlari'),
           _StyleRow(
             label: 'Soat',
-            options: const {'analog': 'Analog', 'digital': 'Raqamli'},
+            options: const {
+              'analog': 'Analog',
+              'digital': 'Raqamli',
+              'smartwatch_round': 'Smart watch (dumaloq)',
+              'smartwatch_square': "Smart watch (to'rtburchak)",
+              'kurant': 'Kurant (mayatnikli)',
+            },
             value: settings.settings.clockStyle,
             onChanged: settings.setClockStyle,
             neumorphic: neumorphic,
           ),
           _StyleRow(
             label: 'Taymer',
-            options: const {'ring': "Halqa", 'big_digits': 'Katta raqam'},
+            options: const {
+              'ring': "Halqa",
+              'big_digits': 'Katta raqam',
+              'hourglass': 'Qumsoat',
+              'flip': "Retro (mexanik qog'ozli)",
+            },
             value: settings.settings.timerStyle,
             onChanged: settings.setTimerStyle,
             neumorphic: neumorphic,
@@ -105,6 +117,16 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (v) => settings.setDistractionLimit(v.round()),
             ),
             trailing: Text('${settings.settings.dailyDistractionLimitMin} daq'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.campaign_outlined),
+            title: const Text('Yangiliklar va aloqa'),
+            subtitle: const Text("Yangilanishlar, boshqa ilovalarimiz, aloqa"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NewsContactScreen()),
+            ),
           ),
           const Divider(),
           ListTile(
