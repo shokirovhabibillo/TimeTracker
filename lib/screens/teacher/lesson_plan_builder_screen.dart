@@ -8,7 +8,8 @@ import 'lesson_timer_screen.dart';
 
 class LessonPlanBuilderScreen extends StatefulWidget {
   final LessonPlanModel? existing;
-  const LessonPlanBuilderScreen({super.key, this.existing});
+  final String domain;
+  const LessonPlanBuilderScreen({super.key, this.existing, this.domain = PlanDomain.teacher});
 
   @override
   State<LessonPlanBuilderScreen> createState() => _LessonPlanBuilderScreenState();
@@ -49,7 +50,7 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
   Future<void> _addSegment() async {
     final type = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => _SegmentTypePicker(alreadyUsed: _segments.map((s) => s.type).toSet()),
+      builder: (context) => _SegmentTypePicker(domain: widget.domain),
     );
     if (type == null) return;
     setState(() {
@@ -92,13 +93,14 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
       planId = widget.existing!.id!;
       await _repository.updatePlanSegments(planId, _nameController.text.trim(), orderedSegments);
     } else {
-      planId = await _repository.createPlan(_nameController.text.trim(), orderedSegments);
+      planId = await _repository.createPlan(_nameController.text.trim(), orderedSegments, domain: widget.domain);
     }
     return LessonPlanModel(
       id: planId,
       name: _nameController.text.trim(),
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       segments: orderedSegments,
+      domain: widget.domain,
     );
   }
 
@@ -130,49 +132,51 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
               decoration: const InputDecoration(labelText: "Dars rejasi nomi (masalan: Algebra 9-sinf)"),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: const Text('Samaradorlikni oshirish uchun 3 oltin qoida',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('• "80/20" qoidasi: 20% vaqt siz gapiring, 80% vaqt o\'quvchi ishlasin.',
-                          style: TextStyle(fontSize: 12)),
-                      SizedBox(height: 4),
-                      Text('• Vaqt nazorati: guruh ishlariga taymer qo\'ying — bu intizomni ushlaydi.',
-                          style: TextStyle(fontSize: 12)),
-                      SizedBox(height: 4),
-                      Text(
-                          '• Energiya almashinuvi: charchoq sezilsa, 1 daqiqalik jismoniy/zehniy mashq o\'tkazing.',
-                          style: TextStyle(fontSize: 12)),
-                    ],
+          if (widget.domain == PlanDomain.teacher) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('Samaradorlikni oshirish uchun 3 oltin qoida',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('• "80/20" qoidasi: 20% vaqt siz gapiring, 80% vaqt o\'quvchi ishlasin.',
+                            style: TextStyle(fontSize: 12)),
+                        SizedBox(height: 4),
+                        Text('• Vaqt nazorati: guruh ishlariga taymer qo\'ying — bu intizomni ushlaydi.',
+                            style: TextStyle(fontSize: 12)),
+                        SizedBox(height: 4),
+                        Text(
+                            '• Energiya almashinuvi: charchoq sezilsa, 1 daqiqalik jismoniy/zehniy mashq o\'tkazing.',
+                            style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Text('Tayyor reglamentlar:',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
-                ...ReadyLessonTemplate.all.map((t) => ActionChip(
-                      avatar: const Icon(Icons.auto_awesome, size: 16),
-                      label: Text(t.name),
-                      onPressed: () => _applyReadyTemplate(t),
-                    )),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('Tayyor reglamentlar:',
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+                  ...ReadyLessonTemplate.all.map((t) => ActionChip(
+                        avatar: const Icon(Icons.auto_awesome, size: 16),
+                        label: Text(t.name),
+                        onPressed: () => _applyReadyTemplate(t),
+                      )),
+                ],
+              ),
             ),
-          ),
+          ],
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
@@ -235,7 +239,7 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         child: ListTile(
                           leading: CircleAvatar(child: Text('${index + 1}')),
-                          title: Text(LessonSegmentType.label(s.type)),
+                          title: Text(segmentLabelForDomain(widget.domain, s.type)),
                           subtitle: Row(
                             children: [
                               IconButton(
@@ -290,10 +294,10 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
 }
 
 class _SegmentTypePicker extends StatelessWidget {
-  final Set<String> alreadyUsed;
-  const _SegmentTypePicker({required this.alreadyUsed});
+  final String domain;
+  const _SegmentTypePicker({required this.domain});
 
-  static const _icons = {
+  static const _teacherIcons = {
     LessonSegmentType.lessonStart: Icons.play_circle_outline,
     LessonSegmentType.attendanceCheck: Icons.checklist,
     LessonSegmentType.homeworkCheck: Icons.assignment_turned_in_outlined,
@@ -304,20 +308,40 @@ class _SegmentTypePicker extends StatelessWidget {
     LessonSegmentType.exercise: Icons.fitness_center_outlined,
     LessonSegmentType.review: Icons.replay,
     LessonSegmentType.homeworkAssign: Icons.assignment_outlined,
+    LessonSegmentType.iceBreaker: Icons.emoji_objects_outlined,
+    LessonSegmentType.microLecture: Icons.school_outlined,
+    LessonSegmentType.groupPractice: Icons.groups_outlined,
+    LessonSegmentType.feedbackCheck: Icons.fact_check_outlined,
+    LessonSegmentType.conclusion: Icons.flag_outlined,
+    LessonSegmentType.interactiveLecture: Icons.forum_outlined,
+    LessonSegmentType.miniDebate: Icons.question_answer_outlined,
+    LessonSegmentType.microBreak: Icons.coffee_outlined,
+    LessonSegmentType.deepPractice: Icons.engineering_outlined,
+    LessonSegmentType.presentationDefense: Icons.slideshow_outlined,
+    LessonSegmentType.finalAssessment: Icons.grading_outlined,
   };
+
+  static const _fitnessIcon = Icons.fitness_center;
+
+  IconData _iconFor(String type) {
+    if (domain == PlanDomain.teacher) return _teacherIcons[type] ?? Icons.circle;
+    if (type.endsWith('_rest')) return Icons.self_improvement;
+    return _fitnessIcon;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final types = segmentTypesForDomain(domain);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: LessonSegmentType.all.map((type) {
+          children: types.map((type) {
             return ActionChip(
-              avatar: Icon(_icons[type] ?? Icons.circle, size: 18),
-              label: Text(LessonSegmentType.label(type)),
+              avatar: Icon(_iconFor(type), size: 18),
+              label: Text(segmentLabelForDomain(domain, type)),
               onPressed: () => Navigator.of(context).pop(type),
             );
           }).toList(),

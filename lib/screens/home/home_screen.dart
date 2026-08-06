@@ -8,6 +8,7 @@ import '../../widgets/morphing_nav_bar.dart';
 import '../../widgets/patterned_background.dart';
 import '../analytics/analytics_screen.dart';
 import '../focus/focus_mode_screen.dart';
+import '../more/more_menu_screen.dart';
 import '../planner/planner_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -29,8 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return FocusModeScreen(isActive: _index == 1);
       case 2:
         return const AnalyticsScreen();
-      default:
+      case 3:
         return const SettingsScreen();
+      default:
+        return const MoreMenuScreen();
     }
   }
 
@@ -39,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     NavItem(icon: Icons.timer_outlined, selectedIcon: Icons.timer, label: 'Fokus'),
     NavItem(icon: Icons.insights_outlined, selectedIcon: Icons.insights, label: 'Tahlil'),
     NavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Sozlama'),
+    NavItem(icon: Icons.apps_outlined, selectedIcon: Icons.apps, label: 'Boshqa'),
   ];
 
   @override
@@ -72,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        final screens = List.generate(4, _screenAt);
+        final screens = List.generate(5, _screenAt);
 
         final nav = MorphingNavBar(
           items: _items,

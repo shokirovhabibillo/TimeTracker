@@ -1,0 +1,60 @@
+import 'package:flutter/material.dart';
+
+import '../counter/counter_screen.dart';
+import '../idp/idp_list_screen.dart';
+import '../news/news_contact_screen.dart';
+import '../study/study_home_screen.dart';
+import '../teacher/sport_home_screen.dart';
+import '../teacher/teacher_home_screen.dart';
+import '../worship/worship_home_screen.dart';
+
+class MoreMenuScreen extends StatelessWidget {
+  const MoreMenuScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <({IconData icon, String label, WidgetBuilder builder})>[
+      (icon: Icons.school_outlined, label: "O'qituvchi rejimi", builder: (_) => const TeacherHomeScreen()),
+      (icon: Icons.fitness_center, label: 'Sport (mashqlar)', builder: (_) => const SportHomeScreen()),
+      (icon: Icons.menu_book_outlined, label: "O'qish (til o'rganish)", builder: (_) => const StudyHomeScreen()),
+      (icon: Icons.mosque_outlined, label: 'Ibodat', builder: (_) => const WorshipHomeScreen()),
+      (icon: Icons.pin_outlined, label: 'Sanoq (Counter)', builder: (_) => const CounterScreen()),
+      (icon: Icons.trending_up, label: 'Shaxsiy rivojlanish (IDP)', builder: (_) => const IdpListScreen()),
+      (icon: Icons.campaign_outlined, label: 'Yangiliklar va aloqa', builder: (_) => const NewsContactScreen()),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Boshqa bo\'limlar')),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.1,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, i) {
+          final item = items[i];
+          return Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: item.builder)),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(item.icon, size: 36, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(height: 10),
+                    Text(item.label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

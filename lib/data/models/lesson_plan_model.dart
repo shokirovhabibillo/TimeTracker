@@ -126,6 +126,172 @@ class ReadyLessonTemplate {
   static const all = [fortyFive, ninety];
 }
 
+/// Which "domain" a plan belongs to — determines which segment-type
+/// vocabulary the builder offers.
+class PlanDomain {
+  static const teacher = 'teacher';
+  static const bodybuilding = 'bodybuilding';
+  static const streetWorkout = 'street_workout';
+  static const warmup = 'warmup';
+
+  static const all = [teacher, bodybuilding, streetWorkout, warmup];
+
+  static String label(String domain) {
+    switch (domain) {
+      case bodybuilding:
+        return 'Bodybuilding';
+      case streetWorkout:
+        return "Street Workout (ko'cha mashqlari)";
+      case warmup:
+        return "Badantarbiya (qizib olish)";
+      default:
+        return "O'qituvchi rejasi";
+    }
+  }
+}
+
+/// Bodybuilding muscle-group / set-structure segments.
+class BodybuildingSegmentType {
+  static const warmupSet = 'bb_warmup_set';
+  static const chest = 'bb_chest';
+  static const back = 'bb_back';
+  static const shoulders = 'bb_shoulders';
+  static const trapezius = 'bb_trapezius';
+  static const biceps = 'bb_biceps';
+  static const triceps = 'bb_triceps';
+  static const legs = 'bb_legs';
+  static const abs = 'bb_abs';
+  static const rest = 'bb_rest';
+
+  static const all = [warmupSet, chest, back, shoulders, trapezius, biceps, triceps, legs, abs, rest];
+
+  static String label(String type) {
+    switch (type) {
+      case warmupSet:
+        return "Isinish seti";
+      case chest:
+        return "Ko'krak mushaklari";
+      case back:
+        return 'Orqa mushaklari';
+      case shoulders:
+        return 'Yelka mushaklari';
+      case trapezius:
+        return 'Trapetsiya';
+      case biceps:
+        return 'Biceps';
+      case triceps:
+        return 'Triceps';
+      case legs:
+        return 'Oyoq mushaklari';
+      case abs:
+        return 'Qorin mushaklari';
+      case rest:
+        return 'Setlar orasidagi dam';
+      default:
+        return 'Boshqa';
+    }
+  }
+}
+
+/// Street Workout (calisthenics) segments.
+class StreetWorkoutSegmentType {
+  static const pullUps = 'sw_pull_ups';
+  static const dips = 'sw_dips';
+  static const pushUps = 'sw_push_ups';
+  static const squats = 'sw_squats';
+  static const plank = 'sw_plank';
+  static const burpees = 'sw_burpees';
+  static const muscleUp = 'sw_muscle_up';
+  static const rest = 'sw_rest';
+
+  static const all = [pullUps, dips, pushUps, squats, plank, burpees, muscleUp, rest];
+
+  static String label(String type) {
+    switch (type) {
+      case pullUps:
+        return "Turnikda tortilish";
+      case dips:
+        return 'Brusda itarish (dips)';
+      case pushUps:
+        return "Yerdan ko'tarilish (push-up)";
+      case squats:
+        return 'Squat (cho\'nqayish)';
+      case plank:
+        return 'Plank (tortishish)';
+      case burpees:
+        return 'Burpee';
+      case muscleUp:
+        return 'Muscle-up';
+      case rest:
+        return 'Dam olish';
+      default:
+        return 'Boshqa';
+    }
+  }
+}
+
+/// Warm-up (badantarbiya) segments — light stretches/mobility before a
+/// harder session.
+class WarmupSegmentType {
+  static const neckRotation = 'wu_neck';
+  static const armRotation = 'wu_arm';
+  static const torsoBend = 'wu_torso';
+  static const jogInPlace = 'wu_jog';
+  static const legSwing = 'wu_leg_swing';
+  static const jointMobility = 'wu_joint';
+  static const finalStretch = 'wu_stretch';
+
+  static const all = [neckRotation, armRotation, torsoBend, jogInPlace, legSwing, jointMobility, finalStretch];
+
+  static String label(String type) {
+    switch (type) {
+      case neckRotation:
+        return "Bo'yin aylanishi";
+      case armRotation:
+        return "Qo'l aylanishi";
+      case torsoBend:
+        return 'Bel egilishi';
+      case jogInPlace:
+        return "Joyida yugurish";
+      case legSwing:
+        return "Oyoq siltash";
+      case jointMobility:
+        return "Bo'g'imlar mashqi";
+      case finalStretch:
+        return 'Cho\'zilish (stretching)';
+      default:
+        return 'Boshqa';
+    }
+  }
+}
+
+/// Returns the right segment-type vocabulary for a given [domain].
+List<String> segmentTypesForDomain(String domain) {
+  switch (domain) {
+    case PlanDomain.bodybuilding:
+      return BodybuildingSegmentType.all;
+    case PlanDomain.streetWorkout:
+      return StreetWorkoutSegmentType.all;
+    case PlanDomain.warmup:
+      return WarmupSegmentType.all;
+    default:
+      return LessonSegmentType.all;
+  }
+}
+
+String segmentLabelForDomain(String domain, String type) {
+  switch (domain) {
+    case PlanDomain.bodybuilding:
+      return BodybuildingSegmentType.label(type);
+    case PlanDomain.streetWorkout:
+      return StreetWorkoutSegmentType.label(type);
+    case PlanDomain.warmup:
+      return WarmupSegmentType.label(type);
+    default:
+      return LessonSegmentType.label(type);
+  }
+}
+
 /// A single ordered stage within a [LessonPlanModel].
 class LessonSegment {
   final int? id;
@@ -169,18 +335,21 @@ class LessonSegment {
       );
 }
 
-/// A teacher-defined lesson: an ordered list of [LessonSegment]s.
+/// A teacher-defined lesson (or workout routine, if [domain] is a
+/// fitness domain): an ordered list of [LessonSegment]s.
 class LessonPlanModel {
   final int? id;
   final String name;
   final DateTime createdAt;
   final List<LessonSegment> segments;
+  final String domain;
 
   LessonPlanModel({
     this.id,
     required this.name,
     required this.createdAt,
     this.segments = const [],
+    this.domain = PlanDomain.teacher,
   });
 
   int get totalMinutes => segments.fold(0, (sum, s) => sum + s.durationMinutes);
@@ -191,6 +360,7 @@ class LessonPlanModel {
       name: name ?? this.name,
       createdAt: createdAt,
       segments: segments ?? this.segments,
+      domain: domain,
     );
   }
 }

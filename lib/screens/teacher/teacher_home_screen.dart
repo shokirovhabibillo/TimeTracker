@@ -7,11 +7,21 @@ import '../../providers/lesson_timer_provider.dart';
 import 'lesson_plan_builder_screen.dart';
 import 'lesson_timer_screen.dart';
 
-/// Entry point for the Teacher module: a saved list of lesson plans,
-/// each an ordered sequence of regiments (dars boshlash, mavzu
-/// tushuntirish, mashq, ... davomat) that the teacher built themselves.
+/// Entry point for a plan domain (Teacher lessons, Bodybuilding, Street
+/// Workout, or Warm-up): a saved list of plans, each an ordered sequence
+/// of regiments/exercises that the user built themselves.
 class TeacherHomeScreen extends StatefulWidget {
-  const TeacherHomeScreen({super.key});
+  final String domain;
+  final String title;
+  final String emptyMessage;
+  const TeacherHomeScreen({
+    super.key,
+    this.domain = PlanDomain.teacher,
+    this.title = "O'qituvchi rejasi",
+    this.emptyMessage = "Hali dars rejasi yaratilmagan. Har bir rejada darsni boshlash, "
+        "mavzu tushuntirish, mashq, uy vazifasi va boshqa bosqichlarni "
+        "o'zingiz belgilagan tartibda va davomiylikda tuzasiz.",
+  });
 
   @override
   State<TeacherHomeScreen> createState() => _TeacherHomeScreenState();
@@ -30,13 +40,13 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    _plans = await _repository.getAllPlans();
+    _plans = await _repository.getAllPlans(domain: widget.domain);
     setState(() => _loading = false);
   }
 
   Future<void> _openBuilder({LessonPlanModel? existing}) async {
     final result = await Navigator.of(context).push<LessonPlanModel>(
-      MaterialPageRoute(builder: (_) => LessonPlanBuilderScreen(existing: existing)),
+      MaterialPageRoute(builder: (_) => LessonPlanBuilderScreen(existing: existing, domain: widget.domain)),
     );
     if (result != null) _load();
   }
@@ -54,7 +64,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("O'qituvchi rejasi")),
+      appBar: AppBar(title: Text(widget.title)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openBuilder(),
         icon: const Icon(Icons.add),
@@ -67,9 +77,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      "Hali dars rejasi yaratilmagan. Har bir rejada darsni boshlash, "
-                      "mavzu tushuntirish, mashq, uy vazifasi va boshqa bosqichlarni "
-                      "o'zingiz belgilagan tartibda va davomiylikda tuzasiz.",
+                      widget.emptyMessage,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Theme.of(context).hintColor),
                     ),

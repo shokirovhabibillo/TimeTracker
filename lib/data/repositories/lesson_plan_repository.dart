@@ -4,11 +4,12 @@ import '../models/lesson_plan_model.dart';
 class LessonPlanRepository {
   final _dbHelper = DatabaseHelper.instance;
 
-  Future<int> createPlan(String name, List<LessonSegment> segments) async {
+  Future<int> createPlan(String name, List<LessonSegment> segments, {String domain = PlanDomain.teacher}) async {
     final db = await _dbHelper.database;
     final planId = await db.insert('lesson_plans', {
       'name': name,
       'created_at': DateTime.now().toIso8601String(),
+      'domain': domain,
     });
     for (final s in segments) {
       await db.insert('lesson_segments', {
@@ -41,9 +42,11 @@ class LessonPlanRepository {
     await db.delete('lesson_plans', where: 'id = ?', whereArgs: [planId]);
   }
 
-  Future<List<LessonPlanModel>> getAllPlans() async {
+  Future<List<LessonPlanModel>> getAllPlans({String? domain}) async {
     final db = await _dbHelper.database;
-    final planMaps = await db.query('lesson_plans', orderBy: 'created_at DESC');
+    final planMaps = domain != null
+        ? await db.query('lesson_plans', where: 'domain = ?', whereArgs: [domain], orderBy: 'created_at DESC')
+        : await db.query('lesson_plans', orderBy: 'created_at DESC');
     final plans = <LessonPlanModel>[];
     for (final pm in planMaps) {
       final segMaps = await db.query(
@@ -57,6 +60,7 @@ class LessonPlanRepository {
         name: pm['name'] as String,
         createdAt: DateTime.parse(pm['created_at'] as String),
         segments: segMaps.map(LessonSegment.fromMap).toList(),
+        domain: pm['domain'] as String? ?? PlanDomain.teacher,
       ));
     }
     return plans;

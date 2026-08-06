@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -89,6 +89,10 @@ class DatabaseHelper {
         );
       ''');
     }
+    if (oldVersion < 8) {
+      await db.execute(
+          "ALTER TABLE lesson_plans ADD COLUMN domain TEXT NOT NULL DEFAULT 'teacher'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -154,7 +158,8 @@ class DatabaseHelper {
       CREATE TABLE lesson_plans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        domain TEXT NOT NULL DEFAULT 'teacher'
       );
     ''');
 

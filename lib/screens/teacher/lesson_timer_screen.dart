@@ -86,7 +86,7 @@ class _CurrentSegmentDisplay extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(LessonSegmentType.label(segment.type),
+          Text(segmentLabelForDomain(timer.plan!.domain, segment.type),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center),
           const SizedBox(height: 16),
@@ -191,7 +191,7 @@ class _SegmentBoard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          LessonSegmentType.label(s.type),
+                          segmentLabelForDomain(plan.domain, s.type),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
