@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Fetching remote admin content: announcements, other apps, contact info -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- Local notifications for scheduled tasks / habits / focus warnings -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
