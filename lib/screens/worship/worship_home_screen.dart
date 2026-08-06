@@ -106,6 +106,7 @@ class _WorshipHomeScreenState extends State<WorshipHomeScreen> {
             ),
           );
         }).toList(),
+        ],
       ),
     );
   }
