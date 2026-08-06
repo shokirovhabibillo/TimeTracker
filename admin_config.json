@@ -8,10 +8,5 @@
     }
   ],
   "apps": [],
-  "contacts": [
-    {
-      "label": "Telegram",
-      "url": "https://t.me/your_channel_here"
-    }
-  ]
+  "contacts": []
 }
