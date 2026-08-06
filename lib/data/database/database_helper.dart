@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -92,6 +92,22 @@ class DatabaseHelper {
     if (oldVersion < 8) {
       await db.execute(
           "ALTER TABLE lesson_plans ADD COLUMN domain TEXT NOT NULL DEFAULT 'teacher'");
+    }
+    if (oldVersion < 9) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS flashcards (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          deck TEXT NOT NULL,
+          front TEXT NOT NULL,
+          back TEXT NOT NULL,
+          transliteration TEXT,
+          interval_days INTEGER NOT NULL DEFAULT 0,
+          repetitions INTEGER NOT NULL DEFAULT 0,
+          ease_factor REAL NOT NULL DEFAULT 2.5,
+          next_review_date TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      ''');
     }
   }
 
@@ -195,6 +211,21 @@ class DatabaseHelper {
         achieved_result TEXT NOT NULL DEFAULT '',
         comment TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (competency_id) REFERENCES idp_competencies (id) ON DELETE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE flashcards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        deck TEXT NOT NULL,
+        front TEXT NOT NULL,
+        back TEXT NOT NULL,
+        transliteration TEXT,
+        interval_days INTEGER NOT NULL DEFAULT 0,
+        repetitions INTEGER NOT NULL DEFAULT 0,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_review_date TEXT NOT NULL,
+        created_at TEXT NOT NULL
       );
     ''');
 
