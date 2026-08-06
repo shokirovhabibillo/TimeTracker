@@ -6,6 +6,8 @@ import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
 import '../../widgets/patterned_background.dart';
+import '../counter/counter_screen.dart';
+import '../idp/idp_list_screen.dart';
 import '../news/news_contact_screen.dart';
 import '../teacher/teacher_home_screen.dart';
 
@@ -117,6 +119,26 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (v) => settings.setDistractionLimit(v.round()),
             ),
             trailing: Text('${settings.settings.dailyDistractionLimitMin} daq'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.pin_outlined),
+            title: const Text('Sanoq (Counter)'),
+            subtitle: const Text("Takrorlashlarni hisoblash uchun"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CounterScreen()),
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.trending_up),
+            title: const Text('Shaxsiy rivojlanish rejasi (IDP)'),
+            subtitle: const Text("70-20-10 modeli bo'yicha qobiliyatlarni rivojlantirish"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const IdpListScreen()),
+            ),
           ),
           const Divider(),
           ListTile(

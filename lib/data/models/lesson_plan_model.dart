@@ -11,6 +11,17 @@ class LessonSegmentType {
   static const homeworkAssign = 'homework_assign';
   static const review = 'review';
   static const attendanceCheck = 'attendance_check';
+  static const iceBreaker = 'ice_breaker';
+  static const microLecture = 'micro_lecture';
+  static const groupPractice = 'group_practice';
+  static const feedbackCheck = 'feedback_check';
+  static const conclusion = 'conclusion';
+  static const interactiveLecture = 'interactive_lecture';
+  static const miniDebate = 'mini_debate';
+  static const microBreak = 'micro_break';
+  static const deepPractice = 'deep_practice';
+  static const presentationDefense = 'presentation_defense';
+  static const finalAssessment = 'final_assessment';
 
   static const all = [
     lessonStart,
@@ -23,6 +34,17 @@ class LessonSegmentType {
     exercise,
     review,
     homeworkAssign,
+    iceBreaker,
+    microLecture,
+    groupPractice,
+    feedbackCheck,
+    conclusion,
+    interactiveLecture,
+    miniDebate,
+    microBreak,
+    deepPractice,
+    presentationDefense,
+    finalAssessment,
   ];
 
   static String label(String type) {
@@ -47,10 +69,61 @@ class LessonSegmentType {
         return 'Takrorlash';
       case attendanceCheck:
         return 'Davomatni tekshirish';
+      case iceBreaker:
+        return "Diqqatni jalb qilish (Ice-breaker)";
+      case microLecture:
+        return "Mikro-ma'ruza";
+      case groupPractice:
+        return 'Amaliyot va interaktivlik';
+      case feedbackCheck:
+        return 'Tekshirish va qaytariq';
+      case conclusion:
+        return 'Xulosa va uyga vazifa';
+      case interactiveLecture:
+        return "Interaktiv ma'ruza";
+      case miniDebate:
+        return 'Mini-debat / Savol-javob';
+      case microBreak:
+        return 'Mikro-tanaffus';
+      case deepPractice:
+        return 'Chuqurlashtirilgan amaliyot';
+      case presentationDefense:
+        return 'Taqdimot va himoya';
+      case finalAssessment:
+        return 'Yakuniy baholash va qaytariq';
       default:
         return 'Boshqa';
     }
   }
+}
+
+/// Ready-made lesson structures matching the 45-minute (school/short
+/// training) and 90-minute (university/seminar) regimens.
+class ReadyLessonTemplate {
+  final String name;
+  final int totalMinutes;
+  final List<({String type, int minutes})> segments;
+  const ReadyLessonTemplate(this.name, this.totalMinutes, this.segments);
+
+  static const fortyFive = ReadyLessonTemplate('45 daqiqali dars (maktab/qisqa trening)', 45, [
+    (type: LessonSegmentType.iceBreaker, minutes: 5),
+    (type: LessonSegmentType.microLecture, minutes: 15),
+    (type: LessonSegmentType.groupPractice, minutes: 15),
+    (type: LessonSegmentType.feedbackCheck, minutes: 7),
+    (type: LessonSegmentType.conclusion, minutes: 3),
+  ]);
+
+  static const ninety = ReadyLessonTemplate('90 daqiqali dars (universitet/seminar)', 90, [
+    (type: LessonSegmentType.lessonStart, minutes: 5),
+    (type: LessonSegmentType.interactiveLecture, minutes: 20),
+    (type: LessonSegmentType.miniDebate, minutes: 15),
+    (type: LessonSegmentType.microBreak, minutes: 5),
+    (type: LessonSegmentType.deepPractice, minutes: 20),
+    (type: LessonSegmentType.presentationDefense, minutes: 15),
+    (type: LessonSegmentType.finalAssessment, minutes: 10),
+  ]);
+
+  static const all = [fortyFive, ninety];
 }
 
 /// A single ordered stage within a [LessonPlanModel].

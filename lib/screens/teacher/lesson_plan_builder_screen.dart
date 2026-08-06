@@ -29,6 +29,19 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
 
   int get _totalMinutes => _segments.fold(0, (sum, s) => sum + s.durationMinutes);
 
+  void _applyReadyTemplate(ReadyLessonTemplate template) {
+    setState(() {
+      _segments = [
+        for (var i = 0; i < template.segments.length; i++)
+          LessonSegment(type: template.segments[i].type, durationMinutes: template.segments[i].minutes, orderIndex: i),
+      ];
+      _targetMinutes = template.totalMinutes;
+      if (_nameController.text.trim().isEmpty) {
+        _nameController.text = template.name;
+      }
+    });
+  }
+
   void _applyTemplate(LessonDurationTemplate template) {
     setState(() => _targetMinutes = template.totalMinutes);
   }
@@ -115,6 +128,49 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
             child: TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: "Dars rejasi nomi (masalan: Algebra 9-sinf)"),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: const Text('Samaradorlikni oshirish uchun 3 oltin qoida',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('• "80/20" qoidasi: 20% vaqt siz gapiring, 80% vaqt o\'quvchi ishlasin.',
+                          style: TextStyle(fontSize: 12)),
+                      SizedBox(height: 4),
+                      Text('• Vaqt nazorati: guruh ishlariga taymer qo\'ying — bu intizomni ushlaydi.',
+                          style: TextStyle(fontSize: 12)),
+                      SizedBox(height: 4),
+                      Text(
+                          '• Energiya almashinuvi: charchoq sezilsa, 1 daqiqalik jismoniy/zehniy mashq o\'tkazing.',
+                          style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Text('Tayyor reglamentlar:',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+                ...ReadyLessonTemplate.all.map((t) => ActionChip(
+                      avatar: const Icon(Icons.auto_awesome, size: 16),
+                      label: Text(t.name),
+                      onPressed: () => _applyReadyTemplate(t),
+                    )),
+              ],
             ),
           ),
           Padding(

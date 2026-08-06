@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -64,6 +64,30 @@ class DatabaseHelper {
     if (oldVersion < 6) {
       await db.execute(
           "ALTER TABLE users_settings ADD COLUMN background_pattern TEXT NOT NULL DEFAULT 'none'");
+    }
+    if (oldVersion < 7) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS idp_competencies (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS idp_action_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          competency_id INTEGER NOT NULL,
+          bucket TEXT NOT NULL,
+          purpose TEXT NOT NULL DEFAULT '',
+          action_plan TEXT NOT NULL DEFAULT '',
+          start_date TEXT,
+          end_date TEXT,
+          status TEXT NOT NULL DEFAULT 'not_started',
+          achieved_result TEXT NOT NULL DEFAULT '',
+          comment TEXT NOT NULL DEFAULT '',
+          FOREIGN KEY (competency_id) REFERENCES idp_competencies (id) ON DELETE CASCADE
+        );
+      ''');
     }
   }
 
@@ -142,6 +166,30 @@ class DatabaseHelper {
         duration_minutes INTEGER NOT NULL,
         order_index INTEGER NOT NULL,
         FOREIGN KEY (lesson_plan_id) REFERENCES lesson_plans (id) ON DELETE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE idp_competencies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE idp_action_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        competency_id INTEGER NOT NULL,
+        bucket TEXT NOT NULL,
+        purpose TEXT NOT NULL DEFAULT '',
+        action_plan TEXT NOT NULL DEFAULT '',
+        start_date TEXT,
+        end_date TEXT,
+        status TEXT NOT NULL DEFAULT 'not_started',
+        achieved_result TEXT NOT NULL DEFAULT '',
+        comment TEXT NOT NULL DEFAULT '',
+        FOREIGN KEY (competency_id) REFERENCES idp_competencies (id) ON DELETE CASCADE
       );
     ''');
 
