@@ -8,33 +8,46 @@ import '../data/motivation_content.dart';
 /// surfaces a dua, hadith, or piece of study wisdom instead of an empty
 /// pause.
 class MotivationBoard extends StatefulWidget {
-  const MotivationBoard({super.key});
+  final String? taskCategory;
+  const MotivationBoard({super.key, this.taskCategory});
 
   @override
   State<MotivationBoard> createState() => _MotivationBoardState();
 }
 
 class _MotivationBoardState extends State<MotivationBoard> {
+  late List<MotivationItem> _pool;
   late int _index;
 
   @override
   void initState() {
     super.initState();
-    _index = Random().nextInt(MotivationLibrary.items.length);
+    _pool = MotivationLibrary.forTaskCategory(widget.taskCategory);
+    _index = Random().nextInt(_pool.length);
+  }
+
+  @override
+  void didUpdateWidget(covariant MotivationBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.taskCategory != widget.taskCategory) {
+      setState(() {
+        _pool = MotivationLibrary.forTaskCategory(widget.taskCategory);
+        _index = Random().nextInt(_pool.length);
+      });
+    }
   }
 
   void _next() {
-    setState(() => _index = (_index + 1) % MotivationLibrary.items.length);
+    setState(() => _index = (_index + 1) % _pool.length);
   }
 
   void _prev() {
-    setState(() =>
-        _index = (_index - 1 + MotivationLibrary.items.length) % MotivationLibrary.items.length);
+    setState(() => _index = (_index - 1 + _pool.length) % _pool.length);
   }
 
   @override
   Widget build(BuildContext context) {
-    final item = MotivationLibrary.items[_index];
+    final item = _pool[_index];
     final scheme = Theme.of(context).colorScheme;
 
     return ConstrainedBox(

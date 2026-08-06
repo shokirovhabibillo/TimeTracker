@@ -6,6 +6,9 @@ class MotivationItem {
   final String? transliteration;
   final String body;
   final String source;
+  /// Which task category this is most relevant for, if any:
+  /// 'study' | 'work' | 'sleep' | null (general/any).
+  final String? taskCategory;
 
   const MotivationItem({
     required this.category,
@@ -14,11 +17,12 @@ class MotivationItem {
     this.transliteration,
     required this.body,
     required this.source,
+    this.taskCategory,
   });
 }
 
 class MotivationLibrary {
-  static const List<MotivationItem> items = [
+  static const List<MotivationItem> _coreItems = [
     // --- Ilm duolari ---
     MotivationItem(
       category: 'Duo',
@@ -183,6 +187,136 @@ class MotivationLibrary {
     ),
   ];
 
-  static List<MotivationItem> byCategory(String category) =>
-      items.where((i) => i.category == category).toList();
+  // --- O'qish/Dars uchun texnikalar ---
+  static const List<MotivationItem> _studyTips = [
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Pomodoro texnikasi (25/5 qoidasi)',
+      body: "Miya uzoq vaqt bir xil diqqatni saqlay olmaydi. 25 daqiqa faqat bitta ishga "
+          "sho'ng'ib, so'ngra 5 daqiqa qat'iy dam oling. Har 4 sikldan keyin 15-30 "
+          "daqiqalik uzoqroq tanaffus qiling — charchoq kamayadi, chalg'ish oldi olinadi.",
+      source: "Umumiy taym-menejment amaliyoti",
+      taskCategory: 'study',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: "Pareto qoidasi (80/20 prinsipi)",
+      body: "Harakatlaringizning 20%i natijaning 80%ini beradi. Eng muhim va yuqori "
+          "natija beruvchi vazifalarni aniqlab, ularga birinchi bo'lib e'tibor qarating.",
+      source: "Umumiy taym-menejment amaliyoti",
+      taskCategory: 'study',
+    ),
+  ];
+
+  // --- Ish uchun texnikalar ---
+  static const List<MotivationItem> _workTips = [
+    MotivationItem(
+      category: 'Texnika',
+      title: '"Baqani yeb qo\'ying" usuli',
+      body: "Kuningizni eng qiyin yoki eng muhim vazifadan boshlang. Uni bajargach, "
+          "qolgan ishlar osonroq tuyuladi va ruhiy yengillik hosil bo'ladi.",
+      source: "Umumiy taym-menejment amaliyoti (Eat the Frog)",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Multitaskingsiz — bitta ishga e\'tibor',
+      body: "Miya bir vaqtda ikkita murakkab vazifani bajara olmaydi — ishdan ishga "
+          "sakrash har safar \"qayta yuklash\"ga vaqt sarflaydi. Bir vaqtda faqat bitta "
+          "ishga to'liq e'tibor qarating (single-tasking).",
+      source: "Neyrobiologik tadqiqotlarga asoslangan amaliyot",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Time-blocking — vaqtni bloklarga bo\'lish',
+      body: "Kunning bir qismini xatlarga javob berishga, boshqa qismini chuqur "
+          "ijodiy ishga ajrating. Taqvimingizni oldindan aniq rejalashtiring.",
+      source: "Umumiy taym-menejment amaliyoti",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Kaizen — doiraviy yaxshilash',
+      body: "Mukammallikka birdaniga erishilmaydi. Har kuni ozgina (1% bo'lsa ham) "
+          "rivojlanish va bajarilgan ishni tahlil qilish xatolarni kamaytiradi.",
+      source: "Kaizen prinsipi",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Raqamli sukunat (Digital Detoks)',
+      body: "Ishlayotganda telefon bildirishnomalarini o'chiring yoki uni boshqa "
+          "xonaga qo'ying. Har safar chalg'iganingizdan keyin asosiy ishga qaytish "
+          "uchun o'rtacha 15-20 daqiqa vaqt ketadi.",
+      source: "Diqqat-e'tibor tadqiqotlari",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: '"Chuqur ish" (Deep Work) muhiti',
+      body: "Atrofingizni chalg'ituvchi tovush va buyumlardan tozalang. Kerak bo'lsa, "
+          "shovqinni yo'q qiluvchi naushniklardan foydalaning.",
+      source: "Cal Newport, \"Deep Work\" kontsepsiyasi",
+      taskCategory: 'work',
+    ),
+    MotivationItem(
+      category: 'Texnika',
+      title: 'Xronotipni hisobga olish',
+      body: "Har kimning energiyasi yuqori bo'lgan payti har xil (\"tongги boyqush\" "
+          "yoki \"kechki burgut\"). Eng murakkab ishlaringizni energiya cho'qqisiga "
+          "chiqqan paytga rejalashtiring.",
+      source: "Xronobiologiya",
+      taskCategory: 'work',
+    ),
+  ];
+
+  // --- Uyqu uchun ---
+  static const List<MotivationItem> _sleepTips = [
+    MotivationItem(
+      category: 'Texnika',
+      title: "Uyqu — miya faoliyatining asosi",
+      body: "Yetarli uxlash va to'g'ri ovqatlanish miya faoliyati tezligi, mantiqiy "
+          "fikrlash va xotira uchun asosiy shart. Charchagan miya samarali ishlay "
+          "olmaydi.",
+      source: "Umumiy sog'liq bo'yicha tavsiya",
+      taskCategory: 'sleep',
+    ),
+  ];
+
+  // --- Ish uchun ma'naviy asos: Al-Akrom ismi ---
+  static const List<MotivationItem> _spiritualWorkTips = [
+    MotivationItem(
+      category: "Ma'naviyat",
+      title: "Al-Akrom — mukammal ish uchun ma'naviy kuch",
+      transliteration: "Iqro' va Robbuka-l-Akrom",
+      body: "\"O'qi, sening Robbing eng ulug' karam egasidir\" — Alloh Al-Akrom "
+          "(Eng Sahiy, Kamolot egasi) zot, shuning uchun U bandalaridan ham ishni "
+          "loqaydlik bilan emas, eng go'zal va sifatli (ihson darajasida) bajarishni "
+          "kutadi. Ishni \"Bismillah\" va sof niyat bilan boshlash, vaqtga rioya "
+          "qilish va ishni oxirigacha yetkazish — Al-Akrom zotning karamiga munosib "
+          "javob hisoblanadi.",
+      source: "Ala surasi, 3-oyat; \"Alloh ish qilganingizda mukammal bajarishni "
+          "yaxshi ko'radi\" — Bayhaqiy rivoyati (ikkinchi darajali, Sahih "
+          "to'plamlarida emas); \"Alloh saxiy, saxiylikni yaxshi ko'radi\" — "
+          "Termiziy rivoyati",
+      taskCategory: 'work',
+    ),
+  ];
+
+  static List<MotivationItem> get items => [
+        ..._coreItems,
+        ..._studyTips,
+        ..._workTips,
+        ..._sleepTips,
+        ..._spiritualWorkTips,
+      ];
+
+  /// Items most relevant to a specific task category (study/work/sleep),
+  /// falling back to the general pool if none match.
+  static List<MotivationItem> forTaskCategory(String? taskCategory) {
+    if (taskCategory == null) return items;
+    final matches = items.where((i) => i.taskCategory == taskCategory).toList();
+    return matches.isNotEmpty ? matches : items;
+  }
 }

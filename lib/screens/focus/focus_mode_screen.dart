@@ -187,6 +187,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                         highlight: highlight,
                         calmMode: extras.calmMode,
                         showMotivation: showMotivation,
+                        motivationCategory: activeTask?.category,
                       )
                     : _PortraitBody(
                         calendar: calendar,
@@ -198,6 +199,7 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
                         highlight: highlight,
                         calmMode: extras.calmMode,
                         showMotivation: showMotivation,
+                        motivationCategory: activeTask?.category,
                       ),
               ),
             ],
@@ -214,6 +216,7 @@ class _LandscapeBody extends StatelessWidget {
   final Color highlight;
   final bool calmMode;
   final bool showMotivation;
+  final String? motivationCategory;
   const _LandscapeBody({
     required this.calendar,
     required this.timer,
@@ -224,6 +227,7 @@ class _LandscapeBody extends StatelessWidget {
     required this.highlight,
     required this.calmMode,
     required this.showMotivation,
+    this.motivationCategory,
   });
 
   @override
@@ -265,7 +269,7 @@ class _LandscapeBody extends StatelessWidget {
                 clock,
                 if (showMotivation) ...[
                   const SizedBox(height: 16),
-                  const MotivationBoard(),
+                  MotivationBoard(taskCategory: motivationCategory),
                 ],
                 const SizedBox(height: 8),
               ],
@@ -290,6 +294,7 @@ class _PortraitBody extends StatelessWidget {
   final Color highlight;
   final bool calmMode;
   final bool showMotivation;
+  final String? motivationCategory;
   const _PortraitBody({
     required this.calendar,
     required this.timer,
@@ -300,6 +305,7 @@ class _PortraitBody extends StatelessWidget {
     required this.highlight,
     required this.calmMode,
     required this.showMotivation,
+    this.motivationCategory,
   });
 
   @override
@@ -317,7 +323,7 @@ class _PortraitBody extends StatelessWidget {
           controls,
           if (showMotivation) ...[
             const SizedBox(height: 16),
-            const MotivationBoard(),
+            MotivationBoard(taskCategory: motivationCategory),
           ],
           const SizedBox(height: 20),
           Align(

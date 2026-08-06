@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
 
 import '../data/models/task_model.dart';
+import '../data/motivation_content.dart';
 
 class NotificationService {
   NotificationService._internal();
@@ -119,6 +120,67 @@ class NotificationService {
   }
 
   Future<void> cancelForTask(int taskId) => _plugin.cancel(taskId);
+
+  /// A second, separate notification fired at the task's *exact* start
+  /// time (not the reminder offset) carrying a category-relevant
+  /// motivational tip — "announces" the plan beginning, as opposed to
+  /// the earlier heads-up reminder.
+  Future<void> scheduleMotivationForTask(TaskModel task) async {
+    if (task.startTime.isBefore(DateTime.now()) && !task.isRecurring) return;
+
+    final pool = MotivationLibrary.forTaskCategory(_taskCategoryToMotivationCategory(task.category));
+    final tip = pool[task.id.hashCode.abs() % pool.length];
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'focus_life_tasks',
+        'Vazifa eslatmalari',
+        channelDescription:
+            'Rejalashtirilgan vazifalar, uyqu va odatlar uchun eslatmalar',
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+        color: Color(_colorFromHex(task.colorCode)),
+        styleInformation: BigTextStyleInformation(tip.body),
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+
+    final scheduledDate = tz.TZDateTime.from(task.startTime, tz.local);
+
+    await _plugin.zonedSchedule(
+      _motivationNotificationId(task.id ?? task.hashCode),
+      '${TaskCategory.label(task.category)} boshlandi: ${task.title}',
+      tip.title,
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: task.isRecurring
+          ? (task.recurrenceRule == 'DAILY'
+              ? DateTimeComponents.time
+              : DateTimeComponents.dayOfWeekAndTime)
+          : null,
+    );
+  }
+
+  int _motivationNotificationId(int taskId) => 500000 + taskId.abs() % 400000;
+
+  String? _taskCategoryToMotivationCategory(String taskCategory) {
+    switch (taskCategory) {
+      case TaskCategory.study:
+        return 'study';
+      case TaskCategory.work:
+        return 'work';
+      case TaskCategory.sleep:
+        return 'sleep';
+      default:
+        return null;
+    }
+  }
+
+  Future<void> cancelMotivationForTask(int taskId) =>
+      _plugin.cancel(_motivationNotificationId(taskId));
 
   Future<void> cancelAll() => _plugin.cancelAll();
 

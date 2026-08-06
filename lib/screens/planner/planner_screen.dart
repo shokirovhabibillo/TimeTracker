@@ -43,17 +43,20 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reja')),
-      floatingActionButton: RadialQuickAddButton(
-        actions: [
-          RadialAction(
-              icon: Icons.task_alt, label: 'Vazifa', onTap: () => _openAddTask(context, category: TaskCategory.work)),
-          RadialAction(
-              icon: Icons.bedtime, label: 'Uyqu', onTap: () => _openAddTask(context, category: TaskCategory.sleep)),
-          RadialAction(
-              icon: Icons.restaurant, label: 'Ovqat', onTap: () => _openAddTask(context, category: TaskCategory.meal)),
-          RadialAction(
-              icon: Icons.repeat, label: 'Odat', onTap: () => _openAddTask(context, category: TaskCategory.habit)),
-        ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 64),
+        child: RadialQuickAddButton(
+          actions: [
+            RadialAction(
+                icon: Icons.task_alt, label: 'Vazifa', onTap: () => _openAddTask(context, category: TaskCategory.work)),
+            RadialAction(
+                icon: Icons.bedtime, label: 'Uyqu', onTap: () => _openAddTask(context, category: TaskCategory.sleep)),
+            RadialAction(
+                icon: Icons.restaurant, label: 'Ovqat', onTap: () => _openAddTask(context, category: TaskCategory.meal)),
+            RadialAction(
+                icon: Icons.repeat, label: 'Odat', onTap: () => _openAddTask(context, category: TaskCategory.habit)),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -192,6 +195,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         ),
                       )
                     : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 140),
                         itemCount: taskProvider.tasksForDay.length,
                         itemBuilder: (context, i) {
                           final task = taskProvider.tasksForDay[i];

@@ -110,8 +110,9 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> addTask(TaskModel task) async {
     final id = await _repository.createTask(task);
-    await NotificationService.instance
-        .scheduleForTask(task.copyWith(id: id));
+    final saved = task.copyWith(id: id);
+    await NotificationService.instance.scheduleForTask(saved);
+    await NotificationService.instance.scheduleMotivationForTask(saved);
     await loadTasksForSelectedDay();
   }
 
@@ -119,7 +120,9 @@ class TaskProvider extends ChangeNotifier {
     await _repository.updateTask(task);
     if (task.id != null) {
       await NotificationService.instance.cancelForTask(task.id!);
+      await NotificationService.instance.cancelMotivationForTask(task.id!);
       await NotificationService.instance.scheduleForTask(task);
+      await NotificationService.instance.scheduleMotivationForTask(task);
     }
     await loadTasksForSelectedDay();
   }
@@ -127,6 +130,7 @@ class TaskProvider extends ChangeNotifier {
   Future<void> deleteTask(int id) async {
     await _repository.deleteTask(id);
     await NotificationService.instance.cancelForTask(id);
+    await NotificationService.instance.cancelMotivationForTask(id);
     await loadTasksForSelectedDay();
   }
 
