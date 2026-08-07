@@ -40,6 +40,18 @@ dependencies:
   # Opening external links (contact, other apps) from the News screen
   url_launcher: ^6.3.1
 
+  # QR code sharing — export/import a day's plan without any backend
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^7.2.0
+
+  # Step counting and route/shape tracking
+  pedometer: ^4.0.2
+  geolocator: ^13.0.2
+
+  # Reading mode: PDF viewing + file selection
+  pdfx: ^2.6.0
+  file_picker: ^8.1.4
+
   # Native "Screen Time" style usage stats (Android UsageStatsManager wrapper)
   usage_stats: ^2.0.1
 
