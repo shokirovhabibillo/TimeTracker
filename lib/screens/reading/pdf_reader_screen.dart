@@ -1,29 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
+import '../../data/repositories/book_repository.dart';
+
 class PdfReaderScreen extends StatefulWidget {
+  final int bookId;
   final String path;
-  const PdfReaderScreen({super.key, required this.path});
+  final int initialPage;
+  const PdfReaderScreen({super.key, required this.bookId, required this.path, this.initialPage = 1});
 
   @override
   State<PdfReaderScreen> createState() => _PdfReaderScreenState();
 }
 
 class _PdfReaderScreenState extends State<PdfReaderScreen> {
+  final _repository = BookRepository();
   late final PdfController _controller;
   double _warmth = 0.35; // 0 = neutral, 1 = strong sepia (e-ink-like warmth)
   double _brightness = 0.9; // dims the screen slightly, like an e-reader
-  int _currentPage = 1;
+  late int _currentPage;
   int _pageCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = PdfController(document: PdfDocument.openFile(widget.path));
+    _currentPage = widget.initialPage;
+    _controller = PdfController(document: PdfDocument.openFile(widget.path), initialPage: widget.initialPage);
+  }
+
+  Future<void> _saveProgress() async {
+    await _repository.updateProgress(widget.bookId, lastPage: _currentPage, totalPages: _pageCount);
   }
 
   @override
   void dispose() {
+    _saveProgress();
     _controller.dispose();
     super.dispose();
   }
@@ -51,8 +62,14 @@ class _PdfReaderScreenState extends State<PdfReaderScreen> {
             opacity: _brightness,
             child: PdfView(
               controller: _controller,
-              onPageChanged: (page) => setState(() => _currentPage = page),
-              onDocumentLoaded: (doc) => setState(() => _pageCount = doc.pagesCount),
+              onPageChanged: (page) {
+                setState(() => _currentPage = page);
+                _saveProgress();
+              },
+              onDocumentLoaded: (doc) {
+                setState(() => _pageCount = doc.pagesCount);
+                _saveProgress();
+              },
             ),
           ),
           IgnorePointer(

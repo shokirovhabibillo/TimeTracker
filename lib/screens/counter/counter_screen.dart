@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/audio_service.dart';
+import '../../widgets/coach_mark.dart';
 
 /// Simple, large tap-to-increment counter — useful for counting exercise
 /// repetitions, dhikr, or any other repeated action. Keeps the screen
@@ -150,21 +151,31 @@ class _CounterScreenState extends State<CounterScreen> {
             Positioned(
               left: 24,
               bottom: 24,
-              child: FloatingActionButton(
-                heroTag: 'minus',
-                backgroundColor: scheme.secondary,
-                onPressed: _decrement,
-                child: const Icon(Icons.remove, size: 32),
+              child: CoachMark(
+                id: 'counter_minus',
+                message: "Bittaga kamaytirish",
+                bubbleAbove: true,
+                child: FloatingActionButton(
+                  heroTag: 'minus',
+                  backgroundColor: scheme.secondary,
+                  onPressed: _decrement,
+                  child: const Icon(Icons.remove, size: 32),
+                ),
               ),
             ),
             Positioned(
               right: 24,
               bottom: 24,
-              child: FloatingActionButton(
-                heroTag: 'plus',
-                backgroundColor: scheme.primary,
-                onPressed: _increment,
-                child: const Icon(Icons.add, size: 32),
+              child: CoachMark(
+                id: 'counter_plus',
+                message: "Bittaga ko'paytirish (sanash)",
+                bubbleAbove: true,
+                child: FloatingActionButton(
+                  heroTag: 'plus',
+                  backgroundColor: scheme.primary,
+                  onPressed: _increment,
+                  child: const Icon(Icons.add, size: 32),
+                ),
               ),
             ),
           ],

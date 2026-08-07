@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/task_model.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/mini_calendar.dart';
+import '../../widgets/coach_mark.dart';
 import '../../widgets/percentage_ring.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/radial_quick_add.dart';
@@ -78,7 +79,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 64),
-        child: RadialQuickAddButton(
+        child: CoachMark(
+          id: 'planner_add',
+          message: "Yangi vazifa, uyqu, ovqat yoki odat qo'shish",
+          bubbleAbove: true,
+          child: RadialQuickAddButton(
           actions: [
             RadialAction(
                 icon: Icons.task_alt, label: 'Vazifa', onTap: () => _openAddTask(context, category: TaskCategory.work)),
@@ -89,6 +94,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             RadialAction(
                 icon: Icons.repeat, label: 'Odat', onTap: () => _openAddTask(context, category: TaskCategory.habit)),
           ],
+        ),
         ),
       ),
       body: Column(
