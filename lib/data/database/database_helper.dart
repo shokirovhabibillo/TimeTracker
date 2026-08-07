@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -136,6 +136,18 @@ class DatabaseHelper {
       await db.execute(
           "ALTER TABLE idp_competencies ADD COLUMN competency_type TEXT NOT NULL DEFAULT 'skill'");
     }
+    if (oldVersion < 13) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS task_completions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          task_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          is_completed INTEGER NOT NULL DEFAULT 0,
+          completion_status TEXT,
+          UNIQUE(task_id, date)
+        );
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -240,6 +252,17 @@ class DatabaseHelper {
         achieved_result TEXT NOT NULL DEFAULT '',
         comment TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (competency_id) REFERENCES idp_competencies (id) ON DELETE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE task_completions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        is_completed INTEGER NOT NULL DEFAULT 0,
+        completion_status TEXT,
+        UNIQUE(task_id, date)
       );
     ''');
 

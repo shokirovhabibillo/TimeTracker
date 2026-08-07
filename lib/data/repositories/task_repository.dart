@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../database/database_helper.dart';
 import '../models/task_model.dart';
 
@@ -65,24 +67,68 @@ class TaskRepository {
     return false;
   }
 
+  String _dateKey(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   /// Returns every task that should appear on [day] — both tasks whose
   /// stored `start_time` literally falls on that date, AND recurring
   /// tasks (DAILY / WEEKLY:...) created on an earlier date whose rule
   /// matches this day's weekday, projected onto [day] at the same
   /// time-of-day. Without this projection, a "WEEKLY: Mon,Wed,Fri" task
   /// would only ever show up on the exact date it was first created.
+  ///
+  /// For recurring tasks, completion status is looked up per-day from
+  /// `task_completions` rather than the master row — otherwise marking
+  /// one day's occurrence done would make every future occurrence show
+  /// as already completed too.
   Future<List<TaskModel>> getTasksForDay(DateTime day) async {
     final db = await _dbHelper.database;
     final startOfDay = DateTime(day.year, day.month, day.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
+    final dateKey = _dateKey(day);
+
+    Future<TaskModel> withPerDayCompletion(TaskModel task) async {
+      if (!task.isRecurring) return task;
+      final rows = await db.query('task_completions',
+          where: 'task_id = ? AND date = ?', whereArgs: [task.id, dateKey], limit: 1);
+      if (rows.isEmpty) {
+        // No completion record for this specific day yet — always show
+        // as not-completed, regardless of what the master row's stale
+        // is_completed/completion_status (from some other day) says.
+        return TaskModel(
+          id: task.id,
+          title: task.title,
+          category: task.category,
+          colorCode: task.colorCode,
+          startTime: task.startTime,
+          endTime: task.endTime,
+          isRecurring: task.isRecurring,
+          recurrenceRule: task.recurrenceRule,
+          notificationOffsetMin: task.notificationOffsetMin,
+          isCompleted: false,
+          rolledOverCount: task.rolledOverCount,
+          completionStatus: null,
+          recurrenceEndDate: task.recurrenceEndDate,
+        );
+      }
+      final row = rows.first;
+      return task.copyWith(
+        isCompleted: (row['is_completed'] as int? ?? 0) == 1,
+        completionStatus: row['completion_status'] as String?,
+      );
+    }
 
     final directMaps = await db.query(
       'tasks',
       where: 'start_time >= ? AND start_time < ?',
       whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
     );
-    final direct = directMaps.map(TaskModel.fromMap).toList();
-    final directIds = direct.map((t) => t.id).toSet();
+    final directRaw = directMaps.map(TaskModel.fromMap).toList();
+    final direct = <TaskModel>[];
+    for (final t in directRaw) {
+      direct.add(await withPerDayCompletion(t));
+    }
+    final directIds = directRaw.map((t) => t.id).toSet();
 
     final recurringMaps = await db.query(
       'tasks',
@@ -99,12 +145,36 @@ class TaskRepository {
       final duration = task.endTime.difference(task.startTime);
       final newStart =
           DateTime(day.year, day.month, day.day, task.startTime.hour, task.startTime.minute);
-      projected.add(task.copyWith(startTime: newStart, endTime: newStart.add(duration)));
+      final projectedTask = task.copyWith(startTime: newStart, endTime: newStart.add(duration));
+      projected.add(await withPerDayCompletion(projectedTask));
     }
 
     final all = [...direct, ...projected];
     all.sort((a, b) => a.startTime.compareTo(b.startTime));
     return all;
+  }
+
+  /// Sets completion status for one specific day's occurrence. Recurring
+  /// tasks write to `task_completions` (so other days aren't affected);
+  /// one-off tasks update the master row directly, same as before.
+  Future<void> setCompletionStatusForDate(
+      int taskId, DateTime day, String status, {required bool isRecurring}) async {
+    if (!isRecurring) {
+      await setCompletionStatus(taskId, status);
+      return;
+    }
+    final db = await _dbHelper.database;
+    final dateKey = _dateKey(day);
+    if (status == 'none') {
+      await db.delete('task_completions', where: 'task_id = ? AND date = ?', whereArgs: [taskId, dateKey]);
+      return;
+    }
+    final isCompleted = status == 'on_time' || status == 'late';
+    await db.insert(
+      'task_completions',
+      {'task_id': taskId, 'date': dateKey, 'is_completed': isCompleted ? 1 : 0, 'completion_status': status},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   /// Tasks that overlap "now or later" — used to highlight future

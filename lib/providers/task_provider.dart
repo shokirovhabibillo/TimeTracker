@@ -103,7 +103,12 @@ class TaskProvider extends ChangeNotifier {
   }
 
   Future<void> setTaskCompletionStatus(TaskModel task, String status) async {
-    await _repository.setCompletionStatus(task.id!, status);
+    await _repository.setCompletionStatusForDate(
+      task.id!,
+      DateTime(task.startTime.year, task.startTime.month, task.startTime.day),
+      status,
+      isRecurring: task.isRecurring,
+    );
     await loadTasksForSelectedDay();
   }
 }
