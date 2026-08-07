@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 9,
+      version: 12,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -109,6 +109,33 @@ class DatabaseHelper {
         );
       ''');
     }
+    if (oldVersion < 10) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS step_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL UNIQUE,
+          midnight_baseline INTEGER NOT NULL,
+          last_reading INTEGER NOT NULL
+        );
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS route_sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          started_at TEXT NOT NULL,
+          ended_at TEXT,
+          distance_meters REAL NOT NULL DEFAULT 0,
+          points_json TEXT NOT NULL
+        );
+      ''');
+    }
+    if (oldVersion < 11) {
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN has_seen_onboarding INTEGER NOT NULL DEFAULT 0");
+    }
+    if (oldVersion < 12) {
+      await db.execute(
+          "ALTER TABLE idp_competencies ADD COLUMN competency_type TEXT NOT NULL DEFAULT 'skill'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -123,9 +150,10 @@ class DatabaseHelper {
         clock_style TEXT NOT NULL DEFAULT 'analog',
         timer_style TEXT NOT NULL DEFAULT 'ring',
         calendar_style TEXT NOT NULL DEFAULT 'timeline',
-        background_pattern TEXT NOT NULL DEFAULT 'none'
+        background_pattern TEXT NOT NULL DEFAULT 'none',
+        has_seen_onboarding INTEGER NOT NULL DEFAULT 0
       );
-    ''');;
+    ''');
 
     await db.execute('''
       CREATE TABLE tasks (
@@ -194,6 +222,7 @@ class DatabaseHelper {
       CREATE TABLE idp_competencies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        competency_type TEXT NOT NULL DEFAULT 'skill',
         created_at TEXT NOT NULL
       );
     ''');
@@ -226,6 +255,25 @@ class DatabaseHelper {
         ease_factor REAL NOT NULL DEFAULT 2.5,
         next_review_date TEXT NOT NULL,
         created_at TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE step_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL UNIQUE,
+        midnight_baseline INTEGER NOT NULL,
+        last_reading INTEGER NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE route_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        started_at TEXT NOT NULL,
+        ended_at TEXT,
+        distance_meters REAL NOT NULL DEFAULT 0,
+        points_json TEXT NOT NULL
       );
     ''');
 

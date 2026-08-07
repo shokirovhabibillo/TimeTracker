@@ -14,6 +14,7 @@ const Map<String, String> _categoryDefaultColors = {
   TaskCategory.laborLeave: '#0EA5E9',
   TaskCategory.privilegedLeave: '#A855F7',
   TaskCategory.annualLeave: '#10B981',
+  TaskCategory.idpDevelopment: '#F97316',
   TaskCategory.custom: '#FF0055',
 };
 

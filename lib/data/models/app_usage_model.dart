@@ -65,6 +65,7 @@ class UserSettingsModel {
   final String timerStyle; // "ring" | "big_digits"
   final String calendarStyle; // "timeline" | "list"
   final String backgroundPattern; // BackgroundPatternType.name
+  final bool hasSeenOnboarding;
 
   UserSettingsModel({
     this.id = 1,
@@ -77,6 +78,7 @@ class UserSettingsModel {
     this.timerStyle = 'ring',
     this.calendarStyle = 'timeline',
     this.backgroundPattern = 'none',
+    this.hasSeenOnboarding = false,
   });
 
   UserSettingsModel copyWith({
@@ -89,6 +91,7 @@ class UserSettingsModel {
     String? timerStyle,
     String? calendarStyle,
     String? backgroundPattern,
+    bool? hasSeenOnboarding,
   }) {
     return UserSettingsModel(
       id: id,
@@ -102,6 +105,7 @@ class UserSettingsModel {
       timerStyle: timerStyle ?? this.timerStyle,
       calendarStyle: calendarStyle ?? this.calendarStyle,
       backgroundPattern: backgroundPattern ?? this.backgroundPattern,
+      hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     );
   }
 
@@ -117,6 +121,7 @@ class UserSettingsModel {
       'timer_style': timerStyle,
       'calendar_style': calendarStyle,
       'background_pattern': backgroundPattern,
+      'has_seen_onboarding': hasSeenOnboarding ? 1 : 0,
     };
   }
 
@@ -133,6 +138,7 @@ class UserSettingsModel {
       timerStyle: map['timer_style'] as String? ?? 'ring',
       calendarStyle: map['calendar_style'] as String? ?? 'timeline',
       backgroundPattern: map['background_pattern'] as String? ?? 'none',
+      hasSeenOnboarding: (map['has_seen_onboarding'] as int? ?? 0) == 1,
     );
   }
 }

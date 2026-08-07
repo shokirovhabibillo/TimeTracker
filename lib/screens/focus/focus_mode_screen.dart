@@ -122,6 +122,10 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
             accentColor: accent,
             subtitle: timerSubtitle);
         break;
+      case 'percentage_ring':
+        timer = PercentageRingTimerDisplay(
+            timeText: timerTimeText, progress: timerProgressValue, accentColor: accent, subtitle: timerSubtitle);
+        break;
       case 'flip':
         timer = FlipTimerDisplay(timeText: timerTimeText, accentColor: accent, subtitle: timerSubtitle);
         break;
@@ -148,6 +152,9 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
         break;
       case 'kurant':
         clock = KurantClock(accentColor: accent);
+        break;
+      case 'day_cycle':
+        clock = DayCycleClock(accentColor: accent);
         break;
       default:
         clock = MediumClock(accentColor: accent);

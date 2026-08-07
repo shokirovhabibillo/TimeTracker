@@ -5,10 +5,11 @@ class IdpRepository {
   final _dbHelper = DatabaseHelper.instance;
 
   /// Creates a competency and seeds its three fixed 70-20-10 rows.
-  Future<int> createCompetency(String name) async {
+  Future<int> createCompetency(String name, String competencyType) async {
     final db = await _dbHelper.database;
     final id = await db.insert('idp_competencies', {
       'name': name,
+      'competency_type': competencyType,
       'created_at': DateTime.now().toIso8601String(),
     });
     for (final bucket in IdpBucket.all) {
@@ -43,9 +44,12 @@ class IdpRepository {
     await db.update('idp_action_items', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
   }
 
-  Future<List<IdpCompetency>> getAllCompetencies() async {
+  Future<List<IdpCompetency>> getAllCompetencies({String? competencyType}) async {
     final db = await _dbHelper.database;
-    final competencyMaps = await db.query('idp_competencies', orderBy: 'created_at DESC');
+    final competencyMaps = competencyType != null
+        ? await db.query('idp_competencies',
+            where: 'competency_type = ?', whereArgs: [competencyType], orderBy: 'created_at DESC')
+        : await db.query('idp_competencies', orderBy: 'created_at DESC');
     final result = <IdpCompetency>[];
     for (final cm in competencyMaps) {
       final itemMaps = await db.query(
@@ -54,11 +58,11 @@ class IdpRepository {
         whereArgs: [cm['id']],
       );
       final items = itemMaps.map(IdpActionItem.fromMap).toList();
-      // Keep a stable 70-20-10 display order regardless of insert order.
       items.sort((a, b) => IdpBucket.all.indexOf(a.bucket).compareTo(IdpBucket.all.indexOf(b.bucket)));
       result.add(IdpCompetency(
         id: cm['id'] as int,
         name: cm['name'] as String,
+        competencyType: cm['competency_type'] as String? ?? IdpCompetencyType.skill,
         createdAt: DateTime.parse(cm['created_at'] as String),
         items: items,
       ));

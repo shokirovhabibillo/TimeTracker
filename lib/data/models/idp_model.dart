@@ -11,7 +11,7 @@ class IdpBucket {
   static String label(String bucket) {
     switch (bucket) {
       case workplace:
-        return "Ish joyida rivojlanish - 70%";
+        return "Amaliy rivojlanish - 70%";
       case mentorFeedback:
         return "Ustoz-shogird an'anasi, Feedback - 20%";
       case training:
@@ -20,6 +20,46 @@ class IdpBucket {
         return bucket;
     }
   }
+}
+
+class IdpCompetencyType {
+  static const skill = 'skill';
+  static const knowledge = 'knowledge';
+
+  static String label(String type) => type == knowledge ? 'Bilimlarni rivojlantirish' : 'Qobiliyatlarni rivojlantirish';
+}
+
+/// Example placeholder text per bucket — helps the user understand what
+/// to write, based on the "Nutq so'zlash" (skill) and "Soliq hisoblash"
+/// (knowledge) sample plans.
+class IdpFieldHints {
+  static String purpose(String bucket) {
+    switch (bucket) {
+      case IdpBucket.workplace:
+        return "Masalan: Ommaviy chiqishlarda fikrni aniq, ravon yetkazishni o'rganish";
+      case IdpBucket.mentorFeedback:
+        return "Masalan: Ustoz/hamkasbdan chiqishlarim bo'yicha fikr-mulohaza olish";
+      default:
+        return "Masalan: Soliq kodeksi va hisoblash bo'yicha kitob/kurslardan o'qish";
+    }
+  }
+
+  static String actionPlan(String bucket) {
+    switch (bucket) {
+      case IdpBucket.workplace:
+        return "Masalan: 1-hafta — nazariya/tahlil, 2-hafta — mashqlar, 3-hafta — "
+            "improvizatsiya, 4-hafta — 5 daqiqali taqdimot bilan chiqish";
+      case IdpBucket.mentorFeedback:
+        return "Masalan: Har haftada 1 marta chiqishimni ko'rsatib, kamchiliklarimni so'rayman";
+      default:
+        return "Masalan: my.soliq.uz orqali amaliy masalalarni yechish, JShDS hisoblash misollari";
+    }
+  }
+
+  static String achievedResult() =>
+      "Masalan: So'z boyligi oshdi, hayajonni boshqarish ko'nikmasi paydo bo'ldi";
+
+  static String comment() => "Masalan: Keyingi safar diksiya mashqlariga ko'proq vaqt ajratish kerak";
 }
 
 class IdpStatus {
@@ -123,10 +163,17 @@ class IdpActionItem {
 class IdpCompetency {
   final int? id;
   final String name;
+  final String competencyType;
   final DateTime createdAt;
   final List<IdpActionItem> items;
 
-  IdpCompetency({this.id, required this.name, required this.createdAt, this.items = const []});
+  IdpCompetency({
+    this.id,
+    required this.name,
+    this.competencyType = IdpCompetencyType.skill,
+    required this.createdAt,
+    this.items = const [],
+  });
 
   double get overallProgress {
     if (items.isEmpty) return 0;

@@ -52,6 +52,12 @@ class SettingsProvider extends ChangeNotifier {
     await _repository.saveSettings(_settings);
   }
 
+  Future<void> markOnboardingSeen() async {
+    _settings = _settings.copyWith(hasSeenOnboarding: true);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
   Future<void> setSleepWindow(String start, String end) async {
     _settings = _settings.copyWith(sleepStartTime: start, sleepEndTime: end);
     notifyListeners();

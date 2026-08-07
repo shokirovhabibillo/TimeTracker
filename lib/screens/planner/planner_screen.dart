@@ -11,6 +11,8 @@ import '../../widgets/progress_bar.dart';
 import '../../widgets/radial_quick_add.dart';
 import '../../widgets/task_tile.dart';
 import 'add_task_screen.dart';
+import 'qr_export_screen.dart';
+import 'qr_import_screen.dart';
 
 class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key});
@@ -42,7 +44,38 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final extras = theme.extension<AppThemeExtras>()!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reja')),
+      appBar: AppBar(
+        title: const Text('Reja'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            tooltip: 'Kun tartibini ulashish (QR)',
+            onPressed: taskProvider.tasksForDay.isEmpty
+                ? null
+                : () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => QrExportScreen(tasks: taskProvider.tasksForDay),
+                    )),
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'QR orqali kun tartibini olish',
+            onPressed: () async {
+              final imported = await Navigator.of(context).push<List<TaskModel>>(
+                MaterialPageRoute(builder: (_) => QrImportScreen(targetDay: taskProvider.selectedDay)),
+              );
+              if (imported == null || imported.isEmpty) return;
+              for (final t in imported) {
+                await taskProvider.addTask(t);
+              }
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${imported.length} vazifa import qilindi')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 64),
         child: RadialQuickAddButton(

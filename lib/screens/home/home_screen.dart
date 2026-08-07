@@ -9,6 +9,7 @@ import '../../widgets/patterned_background.dart';
 import '../analytics/analytics_screen.dart';
 import '../focus/focus_mode_screen.dart';
 import '../more/more_menu_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../planner/planner_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -48,8 +49,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<TaskProvider>().refreshActiveTask();
+      final settings = context.read<SettingsProvider>();
+      if (!settings.isLoading && !settings.settings.hasSeenOnboarding && mounted) {
+        await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
+        settings.markOnboardingSeen();
+      } else if (settings.isLoading) {
+        // Settings may still be loading on cold start — check again shortly.
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (mounted && !context.read<SettingsProvider>().settings.hasSeenOnboarding) {
+          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
+          if (mounted) context.read<SettingsProvider>().markOnboardingSeen();
+        }
+      }
     });
   }
 
@@ -81,7 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
         final nav = MorphingNavBar(
           items: _items,
           selectedIndex: _index,
-          onSelected: (i) => setState(() => _index = i),
+          onSelected: (i) {
+            setState(() => _index = i);
+            if (i == 0) context.read<TaskProvider>().loadTasksForSelectedDay();
+          },
           axis: isLandscape ? Axis.vertical : Axis.horizontal,
         );
 

@@ -3,13 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/models/task_model.dart';
 import '../data/repositories/task_repository.dart';
 import '../services/notification_service.dart';
-
-class TimeGap {
-  final DateTime start;
-  final DateTime end;
-  const TimeGap(this.start, this.end);
-  Duration get duration => end.difference(start);
-}
+import '../utils/schedule_utils.dart';
 
 class TaskProvider extends ChangeNotifier {
   final TaskRepository _repository = TaskRepository();
@@ -43,38 +37,7 @@ class TaskProvider extends ChangeNotifier {
   /// first — otherwise the nested task's end time would be mistaken for
   /// the end of all activity, and the still-ongoing outer task's
   /// remaining time would be misreported as "free".
-  List<TimeGap> get freeGaps {
-    if (_tasksForDay.length < 2) return [];
-    final sorted = [..._tasksForDay]..sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    final busy = <TimeGap>[];
-    for (final t in sorted) {
-      if (busy.isEmpty) {
-        busy.add(TimeGap(t.startTime, t.endTime));
-        continue;
-      }
-      final last = busy.last;
-      if (!t.startTime.isAfter(last.end)) {
-        // Overlaps (or touches) the current busy block — extend it if
-        // this task runs later than what we already have.
-        if (t.endTime.isAfter(last.end)) {
-          busy[busy.length - 1] = TimeGap(last.start, t.endTime);
-        }
-      } else {
-        busy.add(TimeGap(t.startTime, t.endTime));
-      }
-    }
-
-    final gaps = <TimeGap>[];
-    for (var i = 0; i < busy.length - 1; i++) {
-      final gapStart = busy[i].end;
-      final gapEnd = busy[i + 1].start;
-      if (gapEnd.difference(gapStart).inMinutes >= 60) {
-        gaps.add(TimeGap(gapStart, gapEnd));
-      }
-    }
-    return gaps;
-  }
+  List<TimeGap> get freeGaps => computeFreeGaps(_tasksForDay);
 
   Future<void> selectDay(DateTime day) async {
     _selectedDay = day;

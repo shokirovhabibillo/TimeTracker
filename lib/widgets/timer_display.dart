@@ -242,6 +242,149 @@ class FlipTimerDisplay extends StatelessWidget {
 }
 
 
+/// Percentage-ring timer — tick marks and 10%-100% labels around the
+/// ring, like a physical countdown-timer gadget.
+class PercentageRingTimerDisplay extends StatelessWidget {
+  final String timeText;
+  final double progress;
+  final Color accentColor;
+  final String subtitle;
+
+  const PercentageRingTimerDisplay({
+    super.key,
+    required this.timeText,
+    required this.progress,
+    required this.accentColor,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trackColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.15);
+    final subtitleColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 240,
+          height: 240,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              CustomPaint(
+                size: const Size(240, 240),
+                painter: _PercentageRingPainter(progress: progress.clamp(0, 1), color: accentColor, trackColor: trackColor),
+              ),
+              Text(timeText,
+                  style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(subtitle, style: TextStyle(fontSize: 12, color: subtitleColor)),
+      ],
+    );
+  }
+}
+
+class _PercentageRingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color trackColor;
+  _PercentageRingPainter({required this.progress, required this.color, required this.trackColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2 - 18;
+
+    for (int i = 0; i < 40; i++) {
+      final angle = 2 * pi * i / 40 - pi / 2;
+      final isMajor = i % 4 == 0;
+      final r1 = radius + (isMajor ? 10 : 6);
+      final r2 = radius + 14;
+      final p1 = Offset(center.dx + r1 * cos(angle), center.dy + r1 * sin(angle));
+      final p2 = Offset(center.dx + r2 * cos(angle), center.dy + r2 * sin(angle));
+      canvas.drawLine(p1, p2, Paint()..color = trackColor..strokeWidth = isMajor ? 2 : 1);
+    }
+
+    canvas.drawCircle(center, radius, Paint()..color = trackColor..style = PaintingStyle.stroke..strokeWidth = 10);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      2 * pi * progress,
+      false,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PercentageRingPainter oldDelegate) => oldDelegate.progress != progress;
+}
+
+/// Sun/moon day-cycle clock — a circle with the sun/moon positioned to
+/// show roughly where "now" sits in the day/night cycle.
+class DayCycleClock extends StatelessWidget {
+  final Color accentColor;
+  const DayCycleClock({super.key, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return StreamBuilder<DateTime>(
+      stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+      initialData: DateTime.now(),
+      builder: (context, snapshot) {
+        final now = snapshot.data!;
+        final dayFraction = (now.hour * 60 + now.minute) / (24 * 60);
+        return SizedBox(
+          width: 130,
+          height: 130,
+          child: CustomPaint(
+            painter: _DayCyclePainter(dayFraction: dayFraction, lineColor: onSurface.withOpacity(0.2)),
+            child: Center(
+              child: Text(
+                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: onSurface),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DayCyclePainter extends CustomPainter {
+  final double dayFraction;
+  final Color lineColor;
+  _DayCyclePainter({required this.dayFraction, required this.lineColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2 - 12;
+    canvas.drawCircle(center, radius, Paint()..color = lineColor..style = PaintingStyle.stroke..strokeWidth = 1.5);
+
+    final angle = 2 * pi * dayFraction - pi / 2;
+    final isDay = dayFraction > 0.25 && dayFraction < 0.75;
+    final bodyPos = Offset(center.dx + radius * cos(angle), center.dy + radius * sin(angle));
+
+    canvas.drawCircle(bodyPos, 8, Paint()..color = isDay ? const Color(0xFFFFC940) : const Color(0xFFB0BEC5));
+  }
+
+  @override
+  bool shouldRepaint(covariant _DayCyclePainter oldDelegate) => true;
+}
+
 /// to the ring TimerDisplay. No progress ring, just huge readable numbers.
 class BigDigitTimerDisplay extends StatelessWidget {
   final String timeText;

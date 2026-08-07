@@ -11,10 +11,12 @@ class TaskCategory {
   static const laborLeave = 'labor_leave';
   static const privilegedLeave = 'privileged_leave';
   static const annualLeave = 'annual_leave';
+  static const idpDevelopment = 'idp_development';
 
   static const all = [
     work, study, meal, sleep, habit,
     laborLeave, privilegedLeave, annualLeave,
+    idpDevelopment,
     custom,
   ];
 
@@ -36,6 +38,8 @@ class TaskCategory {
         return 'Imtiyozli ta\'til';
       case annualLeave:
         return 'Yillik ta\'til (staj)';
+      case idpDevelopment:
+        return 'Rivojlanish rejasi (IDP)';
       default:
         return 'Boshqa';
     }

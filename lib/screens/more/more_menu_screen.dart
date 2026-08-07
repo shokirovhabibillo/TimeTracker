@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../counter/counter_screen.dart';
 import '../idp/idp_list_screen.dart';
 import '../news/news_contact_screen.dart';
+import '../onboarding/onboarding_screen.dart';
+import '../reading/reading_home_screen.dart';
+import '../steps/step_home_screen.dart';
 import '../study/study_home_screen.dart';
 import '../teacher/sport_home_screen.dart';
 import '../teacher/teacher_home_screen.dart';
@@ -20,7 +23,10 @@ class MoreMenuScreen extends StatelessWidget {
       (icon: Icons.mosque_outlined, label: 'Ibodat', builder: (_) => const WorshipHomeScreen()),
       (icon: Icons.pin_outlined, label: 'Sanoq (Counter)', builder: (_) => const CounterScreen()),
       (icon: Icons.trending_up, label: 'Shaxsiy rivojlanish (IDP)', builder: (_) => const IdpListScreen()),
+      (icon: Icons.directions_walk, label: 'Qadam va masofa', builder: (_) => const StepHomeScreen()),
+      (icon: Icons.chrome_reader_mode_outlined, label: "O'qish rejimi (PDF)", builder: (_) => const ReadingHomeScreen()),
       (icon: Icons.campaign_outlined, label: 'Yangiliklar va aloqa', builder: (_) => const NewsContactScreen()),
+      (icon: Icons.help_outline, label: 'Yordam / Qo\'llanma', builder: (_) => const OnboardingScreen()),
     ];
 
     return Scaffold(
