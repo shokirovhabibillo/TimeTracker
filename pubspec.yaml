@@ -47,6 +47,7 @@ dependencies:
   # Step counting and route/shape tracking
   pedometer: ^4.0.2
   geolocator: ^13.0.2
+  flutter_activity_recognition: ^4.0.0
 
   # Reading mode: PDF viewing + file selection
   pdfx: ^2.6.0
