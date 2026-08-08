@@ -39,6 +39,26 @@ class StepRepository {
     await db.update('step_logs', {'last_reading': currentCumulativeReading}, where: 'id = ?', whereArgs: [logId]);
   }
 
+  /// Returns the last [days] days' logs (including today), oldest first,
+  /// with a zero-step placeholder for any day that has no record yet.
+  Future<List<StepLog>> getLastDays(int days) async {
+    final db = await _dbHelper.database;
+    final now = DateTime.now();
+    final result = <StepLog>[];
+    for (var i = days - 1; i >= 0; i--) {
+      final day = now.subtract(Duration(days: i));
+      final key =
+          '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+      final rows = await db.query('step_logs', where: 'date = ?', whereArgs: [key], limit: 1);
+      if (rows.isEmpty) {
+        result.add(StepLog(date: key, midnightBaseline: 0, lastReading: 0));
+      } else {
+        result.add(StepLog.fromMap(rows.first));
+      }
+    }
+    return result;
+  }
+
   Future<int> saveRouteSession(RouteSession session) async {
     final db = await _dbHelper.database;
     return db.insert('route_sessions', {

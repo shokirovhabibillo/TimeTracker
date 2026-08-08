@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../core/theme/app_theme.dart';
 
@@ -129,54 +130,94 @@ class _HourglassPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final glassPaint = Paint()
-      ..color = glassColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+    final capH = h * 0.06;
+    final neckY = h * 0.5;
+    final neckHalfW = w * 0.045;
 
-    final outline = Path()
-      ..moveTo(w * 0.1, h * 0.02)
-      ..lineTo(w * 0.9, h * 0.02)
-      ..lineTo(w * 0.55, h * 0.48)
-      ..lineTo(w * 0.9, h * 0.98)
-      ..lineTo(w * 0.1, h * 0.98)
-      ..lineTo(w * 0.45, h * 0.48)
+    // Wooden end-caps (top and bottom), giving it a real hourglass-stand look.
+    final woodPaint = Paint()..color = const Color(0xFF8D6748);
+    final capRadius = Radius.circular(capH * 0.4);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.06, 0, w * 0.88, capH), capRadius),
+      woodPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.06, h - capH, w * 0.88, capH), capRadius),
+      woodPaint,
+    );
+
+    // Curved glass silhouette — bulges out top/bottom, pinches at the neck.
+    final glassOutline = Path()
+      ..moveTo(w * 0.14, capH)
+      ..quadraticBezierTo(w * 0.08, h * 0.28, w * 0.5 - neckHalfW, neckY)
+      ..quadraticBezierTo(w * 0.08, h * 0.72, w * 0.14, h - capH)
+      ..lineTo(w * 0.86, h - capH)
+      ..quadraticBezierTo(w * 0.92, h * 0.72, w * 0.5 + neckHalfW, neckY)
+      ..quadraticBezierTo(w * 0.92, h * 0.28, w * 0.86, capH)
       ..close();
-    canvas.drawPath(outline, glassPaint);
+
+    // Subtle glass fill (very light) plus a glossy highlight streak.
+    canvas.drawPath(glassOutline, Paint()..color = glassColor.withOpacity(0.06));
+    canvas.drawPath(
+      glassOutline,
+      Paint()
+        ..color = glassColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5,
+    );
+    canvas.save();
+    canvas.clipPath(glassOutline);
+    canvas.drawLine(
+      Offset(w * 0.28, capH + 4),
+      Offset(w * 0.28, h - capH - 4),
+      Paint()
+        ..color = Colors.white.withOpacity(0.25)
+        ..strokeWidth = w * 0.05
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.restore();
 
     final sandPaint = Paint()..color = sandColor;
 
-    // Top chamber sand (shrinks as progress increases).
+    canvas.save();
+    canvas.clipPath(glassOutline);
+
+    // Top chamber sand (shrinks as progress increases) — flat top, pinched bottom.
     final topRemaining = 1 - progress;
     if (topRemaining > 0.02) {
-      final topH = h * 0.44 * topRemaining;
+      final startY = neckY - (neckY - capH) * topRemaining;
       final topSand = Path()
-        ..moveTo(w * 0.15, h * 0.06)
-        ..lineTo(w * 0.85, h * 0.06)
-        ..lineTo(w * 0.5, h * 0.06 + topH)
+        ..moveTo(w * 0.16, startY)
+        ..lineTo(w * 0.84, startY)
+        ..quadraticBezierTo(w * 0.5, neckY - 6, w * 0.5 - neckHalfW, neckY)
+        ..lineTo(w * 0.5 + neckHalfW, neckY)
+        ..quadraticBezierTo(w * 0.5, neckY - 6, w * 0.84, startY)
         ..close();
       canvas.drawPath(topSand, sandPaint);
     }
 
-    // Falling stream.
+    // Falling stream through the neck.
     if (progress > 0.02 && progress < 0.98) {
-      canvas.drawLine(Offset(w * 0.5, h * 0.46), Offset(w * 0.5, h * 0.54),
-          Paint()..color = sandColor..strokeWidth = 2);
+      canvas.drawLine(Offset(w * 0.5, neckY - 4), Offset(w * 0.5, neckY + 4),
+          Paint()..color = sandColor..strokeWidth = 2.5);
     }
 
     // Bottom chamber sand (grows as progress increases), piling up from the base.
     if (progress > 0.02) {
-      final bottomH = h * 0.46 * progress;
-      final baseY = h * 0.96;
-      final topY = baseY - bottomH;
-      final spread = (w * 0.4) * progress;
+      final baseY = h - capH - 2;
+      final maxPileH = (baseY - neckY) * 0.9;
+      final pileH = maxPileH * progress;
+      final topY = baseY - pileH;
+      final spread = (w * 0.36) * progress;
       final bottomSand = Path()
-        ..moveTo(w * 0.5 - spread.clamp(0, w * 0.4), baseY)
-        ..lineTo(w * 0.5 + spread.clamp(0, w * 0.4), baseY)
-        ..lineTo(w * 0.5, topY.clamp(h * 0.5, baseY))
+        ..moveTo(w * 0.5 - spread, baseY)
+        ..lineTo(w * 0.5 + spread, baseY)
+        ..lineTo(w * 0.5, topY.clamp(neckY, baseY))
         ..close();
       canvas.drawPath(bottomSand, sandPaint);
     }
+
+    canvas.restore();
   }
 
   @override
@@ -638,6 +679,127 @@ class _PendulumPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PendulumPainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Islamic-watch-style face — inspired by "Al-Salah"/"Al-Fajr" smart
+/// watches: digital time, an approximate Hijri date, and the Qibla
+/// bearing (computed once from the device's last known location,
+/// pointing to the Kaaba) — no live compass/magnetometer needed.
+class IslamicWatchClock extends StatefulWidget {
+  final Color accentColor;
+  const IslamicWatchClock({super.key, required this.accentColor});
+
+  @override
+  State<IslamicWatchClock> createState() => _IslamicWatchClockState();
+}
+
+class _IslamicWatchClockState extends State<IslamicWatchClock> {
+  double? _qiblaBearing;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQibla();
+  }
+
+  Future<void> _loadQibla() async {
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos == null) return;
+      const kaabaLat = 21.4225, kaabaLng = 39.8262;
+      final lat1 = pos.latitude * pi / 180;
+      final lat2 = kaabaLat * pi / 180;
+      final dLng = (kaabaLng - pos.longitude) * pi / 180;
+      final y = sin(dLng) * cos(lat2);
+      final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLng);
+      final bearing = (atan2(y, x) * 180 / pi + 360) % 360;
+      if (mounted) setState(() => _qiblaBearing = bearing);
+    } catch (_) {
+      // No location permission/service — Qibla readout just stays hidden.
+    }
+  }
+
+  String _approxHijriDate(DateTime g) {
+    // Widely-used simple Kuwaiti-algorithm-style approximation — good
+    // enough for a watch-face display, not a substitute for a proper
+    // mosque-verified calendar.
+    final jd = g.millisecondsSinceEpoch / 86400000.0 + 2440587.5;
+    final islamicEpoch = 1948439.5;
+    final daysSinceEpoch = (jd - islamicEpoch).floor();
+    final cycles = (daysSinceEpoch / 10631).floor();
+    var remaining = daysSinceEpoch - cycles * 10631;
+    var year = cycles * 30 + 1;
+    while (true) {
+      final yearLength = _isHijriLeap(year) ? 355 : 354;
+      if (remaining < yearLength) break;
+      remaining -= yearLength;
+      year++;
+    }
+    const monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    var month = 1;
+    for (final len in monthLengths) {
+      final actualLen = (month == 12 && _isHijriLeap(year)) ? 30 : len;
+      if (remaining < actualLen) break;
+      remaining -= actualLen;
+      month++;
+    }
+    final day = remaining.floor() + 1;
+    const monthNames = [
+      'Muharram', 'Safar', "Rabi' I", "Rabi' II", 'Jumada I', 'Jumada II',
+      'Rajab', "Sha'ban", 'Ramazon', 'Shavvol', "Zul-Qa'da", "Zul-Hijja",
+    ];
+    final monthName = monthNames[(month - 1).clamp(0, 11)];
+    return '$day $monthName $year';
+  }
+
+  bool _isHijriLeap(int year) => (11 * year + 14) % 30 < 11;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DateTime>(
+      stream: Stream.periodic(const Duration(seconds: 30), (_) => DateTime.now()),
+      initialData: DateTime.now(),
+      builder: (context, snapshot) {
+        final now = snapshot.data!;
+        final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+        return Container(
+          width: 190,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF0E2A1A), Color(0xFF163B24)]),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: widget.accentColor.withOpacity(0.5), width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_approxHijriDate(now),
+                  style: TextStyle(color: widget.accentColor, fontSize: 11, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Text(timeStr,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      fontFeatures: [FontFeature.tabularFigures()])),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.explore_outlined, size: 14, color: widget.accentColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    _qiblaBearing != null ? "Qibla: ${_qiblaBearing!.round()}°" : "Qibla: joylashuv kerak",
+                    style: TextStyle(color: widget.accentColor, fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _ClockPainter extends CustomPainter {

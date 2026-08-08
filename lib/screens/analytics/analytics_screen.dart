@@ -5,7 +5,9 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/app_usage_model.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/task_provider.dart';
 import '../../providers/usage_provider.dart';
+import '../../widgets/daily_breakdown_donut.dart';
 import '../../widgets/progress_bar.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -57,11 +59,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final extras = Theme.of(context).extension<AppThemeExtras>()!;
     final scheme = Theme.of(context).colorScheme;
     final limit = settings.settings.dailyDistractionLimitMin;
+    final breakdown = context.watch<TaskProvider>().categoryBreakdown;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Diqqat tahlili')),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Kunlik reja taqsimoti", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 12),
+                    DailyBreakdownDonut(breakdown: breakdown),
+                  ],
+                ),
+              ),
+            ),
+          ),
           if (_rolloverCount != null && _rolloverCount! > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),

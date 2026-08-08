@@ -66,6 +66,7 @@ class UserSettingsModel {
   final String calendarStyle; // "timeline" | "list"
   final String backgroundPattern; // BackgroundPatternType.name
   final bool hasSeenOnboarding;
+  final double fontScale;
 
   UserSettingsModel({
     this.id = 1,
@@ -79,6 +80,7 @@ class UserSettingsModel {
     this.calendarStyle = 'timeline',
     this.backgroundPattern = 'none',
     this.hasSeenOnboarding = false,
+    this.fontScale = 1.0,
   });
 
   UserSettingsModel copyWith({
@@ -92,6 +94,7 @@ class UserSettingsModel {
     String? calendarStyle,
     String? backgroundPattern,
     bool? hasSeenOnboarding,
+    double? fontScale,
   }) {
     return UserSettingsModel(
       id: id,
@@ -106,6 +109,7 @@ class UserSettingsModel {
       calendarStyle: calendarStyle ?? this.calendarStyle,
       backgroundPattern: backgroundPattern ?? this.backgroundPattern,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+      fontScale: fontScale ?? this.fontScale,
     );
   }
 
@@ -122,6 +126,7 @@ class UserSettingsModel {
       'calendar_style': calendarStyle,
       'background_pattern': backgroundPattern,
       'has_seen_onboarding': hasSeenOnboarding ? 1 : 0,
+      'font_scale': fontScale,
     };
   }
 
@@ -139,6 +144,7 @@ class UserSettingsModel {
       calendarStyle: map['calendar_style'] as String? ?? 'timeline',
       backgroundPattern: map['background_pattern'] as String? ?? 'none',
       hasSeenOnboarding: (map['has_seen_onboarding'] as int? ?? 0) == 1,
+      fontScale: (map['font_scale'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }

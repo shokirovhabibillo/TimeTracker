@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 14,
+      version: 16,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -161,6 +161,21 @@ class DatabaseHelper {
         );
       ''');
     }
+    if (oldVersion < 15) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS activity_time_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL,
+          activity_type TEXT NOT NULL,
+          seconds INTEGER NOT NULL DEFAULT 0,
+          UNIQUE(date, activity_type)
+        );
+      ''');
+    }
+    if (oldVersion < 16) {
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN font_scale REAL NOT NULL DEFAULT 1.0");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -176,7 +191,8 @@ class DatabaseHelper {
         timer_style TEXT NOT NULL DEFAULT 'ring',
         calendar_style TEXT NOT NULL DEFAULT 'timeline',
         background_pattern TEXT NOT NULL DEFAULT 'none',
-        has_seen_onboarding INTEGER NOT NULL DEFAULT 0
+        has_seen_onboarding INTEGER NOT NULL DEFAULT 0,
+        font_scale REAL NOT NULL DEFAULT 1.0
       );
     ''');
 
@@ -288,6 +304,16 @@ class DatabaseHelper {
         total_pages INTEGER NOT NULL DEFAULT 0,
         added_at TEXT NOT NULL,
         last_opened_at TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE activity_time_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        activity_type TEXT NOT NULL,
+        seconds INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(date, activity_type)
       );
     ''');
 

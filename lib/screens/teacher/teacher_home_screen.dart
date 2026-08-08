@@ -6,6 +6,7 @@ import '../../data/repositories/lesson_plan_repository.dart';
 import '../../providers/lesson_timer_provider.dart';
 import 'lesson_plan_builder_screen.dart';
 import 'lesson_timer_screen.dart';
+import '../warmup/warmup_home_screen.dart';
 
 /// Entry point for a plan domain (Teacher lessons, Bodybuilding, Street
 /// Workout, or Warm-up): a saved list of plans, each an ordered sequence
@@ -70,47 +71,71 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Yangi reja'),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _plans.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      widget.emptyMessage,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Theme.of(context).hintColor),
-                    ),
+      body: Column(
+        children: [
+          if (widget.domain != PlanDomain.teacher && widget.domain != PlanDomain.warmup)
+            Card(
+              margin: const EdgeInsets.all(12),
+              color: Colors.orange.withOpacity(0.1),
+              child: ListTile(
+                leading: const Icon(Icons.whatshot, color: Colors.orange),
+                title: const Text('Warm-up tavsiya etiladi', style: TextStyle(fontSize: 13)),
+                subtitle: const Text('Mashg\'ulotdan oldin qizib olish', style: TextStyle(fontSize: 11)),
+                trailing: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const WarmupHomeScreen()),
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _plans.length,
-                  itemBuilder: (context, i) {
-                    final plan = _plans[i];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      child: ListTile(
-                        title: Text(plan.name),
-                        subtitle: Text('${plan.segments.length} bosqich · ${plan.totalMinutes} daqiqa'),
-                        onTap: () => _openBuilder(existing: plan),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.play_circle_fill),
-                              onPressed: () => _runPlan(plan),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () => _deletePlan(plan),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                  child: const Text('Boshlash'),
                 ),
+              ),
+            ),
+          Expanded(child: _buildList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_plans.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            widget.emptyMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Theme.of(context).hintColor),
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: _plans.length,
+      itemBuilder: (context, i) {
+        final plan = _plans[i];
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ListTile(
+            title: Text(plan.name),
+            subtitle: Text('${plan.segments.length} bosqich · ${plan.totalMinutes} daqiqa'),
+            onTap: () => _openBuilder(existing: plan),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.play_circle_fill),
+                  onPressed: () => _runPlan(plan),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _deletePlan(plan),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

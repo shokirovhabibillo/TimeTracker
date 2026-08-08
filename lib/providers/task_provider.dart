@@ -39,6 +39,16 @@ class TaskProvider extends ChangeNotifier {
   /// remaining time would be misreported as "free".
   List<TimeGap> get freeGaps => computeFreeGaps(_tasksForDay);
 
+  /// Each category's share of today's scheduled time, by duration —
+  /// feeds the big donut chart at the top of the Analytics screen.
+  Map<String, Duration> get categoryBreakdown {
+    final map = <String, Duration>{};
+    for (final t in _tasksForDay) {
+      map[t.category] = (map[t.category] ?? Duration.zero) + t.endTime.difference(t.startTime);
+    }
+    return map;
+  }
+
   Future<void> selectDay(DateTime day) async {
     _selectedDay = day;
     await loadTasksForSelectedDay();

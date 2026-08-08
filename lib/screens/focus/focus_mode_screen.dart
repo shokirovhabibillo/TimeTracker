@@ -156,6 +156,9 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
       case 'day_cycle':
         clock = DayCycleClock(accentColor: accent);
         break;
+      case 'islamic_watch':
+        clock = IslamicWatchClock(accentColor: accent);
+        break;
       default:
         clock = MediumClock(accentColor: accent);
     }

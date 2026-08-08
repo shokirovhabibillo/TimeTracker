@@ -47,6 +47,27 @@ class SettingsScreen extends StatelessWidget {
           for (final group in AgeGroup.values) _ThemeGroupSection(group: group, neumorphic: neumorphic),
           const SizedBox(height: 8),
           const Divider(),
+          _SectionTitle("Matn o'lchami"),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.text_decrease, size: 18),
+                Expanded(
+                  child: Slider(
+                    value: settings.settings.fontScale,
+                    min: 0.8,
+                    max: 1.5,
+                    divisions: 7,
+                    label: '${(settings.settings.fontScale * 100).round()}%',
+                    onChanged: (v) => settings.setFontScale(v),
+                  ),
+                ),
+                const Icon(Icons.text_increase, size: 22),
+              ],
+            ),
+          ),
+          const Divider(),
           _SectionTitle('Ko\'rinish variantlari'),
           _StyleRow(
             label: 'Soat',
@@ -57,6 +78,7 @@ class SettingsScreen extends StatelessWidget {
               'smartwatch_square': "Smart watch (to'rtburchak)",
               'kurant': 'Kurant (mayatnikli)',
               'day_cycle': 'Quyosh/Oy aylanishi',
+              'islamic_watch': 'Islomiy soat (Qibla)',
             },
             value: settings.settings.clockStyle,
             onChanged: settings.setClockStyle,

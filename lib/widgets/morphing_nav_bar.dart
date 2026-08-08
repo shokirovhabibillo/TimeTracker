@@ -43,7 +43,7 @@ class MorphingNavBar extends StatelessWidget {
       margin: EdgeInsets.all(isHorizontal ? 12 : 16),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
+        color: scheme.surfaceContainerHighest.withOpacity(0.55),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),

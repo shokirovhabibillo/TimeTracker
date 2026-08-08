@@ -9,6 +9,7 @@ import '../../widgets/mini_calendar.dart';
 import '../../widgets/coach_mark.dart';
 import '../../widgets/percentage_ring.dart';
 import '../../widgets/progress_bar.dart';
+import '../../widgets/striped_percentage_ring.dart';
 import '../../widgets/radial_quick_add.dart';
 import '../../widgets/task_tile.dart';
 import 'add_task_screen.dart';
@@ -101,42 +102,36 @@ class _PlannerScreenState extends State<PlannerScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: MiniCalendarHeader(
-              day: taskProvider.selectedDay,
-              onPrev: () =>
-                  taskProvider.selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
-              onNext: () =>
-                  taskProvider.selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
-              onToday: () => taskProvider.selectDay(DateTime.now()),
+            child: Center(
+              child: Column(
+                children: [
+                  StripedPercentageRing(
+                    value: taskProvider.dayProgress,
+                    color: theme.colorScheme.primary,
+                    size: 92,
+                    glow: extras.glowEnabled,
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Bugungi bajarilish', style: TextStyle(fontSize: 12, color: theme.hintColor)),
+                ],
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                PercentageRing(
-                  value: taskProvider.dayProgress,
-                  color: theme.colorScheme.primary,
-                  glow: extras.glowEnabled,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FractionallySizedBox(
+                widthFactor: 0.8,
+                child: MiniCalendarHeader(
+                  day: taskProvider.selectedDay,
+                  onPrev: () =>
+                      taskProvider.selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
+                  onNext: () =>
+                      taskProvider.selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
+                  onToday: () => taskProvider.selectDay(DateTime.now()),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Bugungi bajarilish',
-                          style: TextStyle(fontSize: 12, color: theme.hintColor)),
-                      const SizedBox(height: 4),
-                      AppProgressBar(
-                        value: taskProvider.dayProgress,
-                        color: theme.colorScheme.primary,
-                        glow: extras.glowEnabled,
-                        height: 6,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 8),

@@ -233,36 +233,119 @@ class StreetWorkoutSegmentType {
 /// Warm-up (badantarbiya) segments — light stretches/mobility before a
 /// harder session.
 class WarmupSegmentType {
-  static const neckRotation = 'wu_neck';
-  static const armRotation = 'wu_arm';
-  static const torsoBend = 'wu_torso';
-  static const jogInPlace = 'wu_jog';
-  static const legSwing = 'wu_leg_swing';
-  static const jointMobility = 'wu_joint';
-  static const finalStretch = 'wu_stretch';
+  static const marchInPlace = 'wu_march';
+  static const lightJog = 'wu_light_jog';
+  static const stepTouch = 'wu_step_touch';
+  static const jumpingJack = 'wu_jumping_jack';
+  static const shoulderRoll = 'wu_shoulder_roll';
+  static const armCircle = 'wu_arm_circle';
+  static const armSwing = 'wu_arm_swing';
+  static const scapularRetraction = 'wu_scapular';
+  static const wristCircle = 'wu_wrist_circle';
+  static const neckTurn = 'wu_neck_turn';
+  static const neckTilt = 'wu_neck_tilt';
+  static const torsoRotation = 'wu_torso_rotation';
+  static const sideReach = 'wu_side_reach';
+  static const hipCircle = 'wu_hip_circle';
+  static const legSwingFrontBack = 'wu_leg_swing_fb';
+  static const legSwingSide = 'wu_leg_swing_side';
+  static const bodyweightSquat = 'wu_squat';
+  static const reverseLunge = 'wu_lunge';
+  static const ankleCircle = 'wu_ankle_circle';
+  static const calfRaise = 'wu_calf_raise';
 
-  static const all = [neckRotation, armRotation, torsoBend, jogInPlace, legSwing, jointMobility, finalStretch];
+  // Kept for backward compatibility with earlier, more generic labels.
+  static const neckRotation = neckTurn;
+  static const armRotation = armCircle;
+  static const torsoBend = torsoRotation;
+  static const jogInPlace = lightJog;
+  static const legSwing = legSwingFrontBack;
+  static const jointMobility = wristCircle;
+  static const finalStretch = calfRaise;
+
+  static const all = [
+    marchInPlace, lightJog, stepTouch, jumpingJack,
+    shoulderRoll, armCircle, armSwing, scapularRetraction, wristCircle,
+    neckTurn, neckTilt,
+    torsoRotation, sideReach,
+    hipCircle, legSwingFrontBack, legSwingSide, bodyweightSquat, reverseLunge, ankleCircle, calfRaise,
+  ];
 
   static String label(String type) {
     switch (type) {
-      case neckRotation:
-        return "Bo'yin aylanishi";
-      case armRotation:
-        return "Qo'l aylanishi";
-      case torsoBend:
-        return 'Bel egilishi';
-      case jogInPlace:
+      case marchInPlace:
+        return "Joyida yurish (march)";
+      case lightJog:
         return "Joyida yugurish";
-      case legSwing:
-        return "Oyoq siltash";
-      case jointMobility:
-        return "Bo'g'imlar mashqi";
-      case finalStretch:
-        return 'Cho\'zilish (stretching)';
+      case stepTouch:
+        return 'Step touch';
+      case jumpingJack:
+        return "Yengil jumping jack";
+      case shoulderRoll:
+        return "Yelka aylanishi";
+      case armCircle:
+        return "Qo'l aylanishi";
+      case armSwing:
+        return "Qo'l siltash";
+      case scapularRetraction:
+        return "Kurak suyagi siqish";
+      case wristCircle:
+        return "Bilak aylanishi";
+      case neckTurn:
+        return "Bo'yin burilishi (yengil)";
+      case neckTilt:
+        return "Bo'yin egilishi (yengil)";
+      case torsoRotation:
+        return "Gavda burilishi";
+      case sideReach:
+        return "Yon tomonga cho'zilish";
+      case hipCircle:
+        return "Son aylanishi";
+      case legSwingFrontBack:
+        return "Oyoq siltash (oldinga-orqaga)";
+      case legSwingSide:
+        return "Oyoq siltash (yon tomon)";
+      case bodyweightSquat:
+        return 'Squat';
+      case reverseLunge:
+        return 'Reverse Lunge';
+      case ankleCircle:
+        return "Tuban bo'g'im aylanishi";
+      case calfRaise:
+        return "Boldir ko'tarish";
       default:
         return 'Boshqa';
     }
   }
+}
+
+/// Ready-made warm-up sequences (Quick / Full) — same idea as the
+/// 45/90-minute lesson templates: a fixed, pre-built ordered sequence
+/// the user can start immediately.
+class WarmupTemplate {
+  final String name;
+  final int totalMinutes;
+  final List<({String type, int minutes})> segments;
+  const WarmupTemplate(this.name, this.totalMinutes, this.segments);
+
+  static const quick = WarmupTemplate('Quick Warm-up (3-5 daq)', 4, [
+    (type: WarmupSegmentType.marchInPlace, minutes: 1),
+    (type: WarmupSegmentType.armCircle, minutes: 1),
+    (type: WarmupSegmentType.shoulderRoll, minutes: 1),
+    (type: WarmupSegmentType.torsoRotation, minutes: 1),
+  ]);
+
+  static const full = WarmupTemplate('Full Warm-up (7-10 daq)', 8, [
+    (type: WarmupSegmentType.marchInPlace, minutes: 2), // Phase 1: umumiy harakat
+    (type: WarmupSegmentType.shoulderRoll, minutes: 1), // Phase 2: yuqori tana
+    (type: WarmupSegmentType.wristCircle, minutes: 1),
+    (type: WarmupSegmentType.torsoRotation, minutes: 1), // Phase 3: gavda/son
+    (type: WarmupSegmentType.hipCircle, minutes: 1),
+    (type: WarmupSegmentType.bodyweightSquat, minutes: 1), // Phase 4: pastki tana
+    (type: WarmupSegmentType.legSwingFrontBack, minutes: 1),
+  ]);
+
+  static const all = [quick, full];
 }
 
 /// Returns the right segment-type vocabulary for a given [domain].

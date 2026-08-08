@@ -6,12 +6,14 @@ import 'providers/task_provider.dart';
 import 'providers/usage_provider.dart';
 import 'providers/lesson_timer_provider.dart';
 import 'screens/home/home_screen.dart';
+import 'services/activity_recognition_service.dart';
 import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.init();
   await NotificationService.instance.requestPermissions();
+  ActivityRecognitionService.instance.start(); // asks once; OS remembers the decision after that
   runApp(const FocusLifeTrackerApp());
 }
 
@@ -33,6 +35,14 @@ class FocusLifeTrackerApp extends StatelessWidget {
             title: 'Focus & Life Tracker',
             debugShowCheckedModeBanner: false,
             theme: settings.themeData,
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(settings.settings.fontScale),
+                ),
+                child: child!,
+              );
+            },
             home: settings.isLoading
                 ? const _SplashScreen()
                 : const HomeScreen(),

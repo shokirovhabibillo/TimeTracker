@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/lesson_plan_model.dart';
 import '../bodybuilding/trapezius_home_screen.dart';
+import '../street_workout/street_workout_home_screen.dart';
 import '../teacher/teacher_home_screen.dart';
+import '../warmup/warmup_home_screen.dart';
 
 /// Entry point for the Sport module — three workout domains, each
 /// reusing the same reorderable plan-builder and sequential timer as
@@ -48,6 +50,32 @@ class SportHomeScreen extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const TrapeziusHomeScreen()),
+              ),
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.sports_gymnastics)),
+              title: const Text("Street Workout — o'quv katalogi"),
+              subtitle: const Text('Pull/Push/Legs/Core, progression va generator'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StreetWorkoutHomeScreen()),
+              ),
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.whatshot)),
+              title: const Text('Badantarbiya — tayyor Warm-up'),
+              subtitle: const Text('Quick / Full — bir bosishda ishga tushadi'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const WarmupHomeScreen()),
               ),
             ),
           ),
