@@ -1,3 +1,5 @@
+import 'family_link_model.dart';
+
 class AppCategory {
   static const social = 'social';
   static const games = 'games';
@@ -67,6 +69,10 @@ class UserSettingsModel {
   final String backgroundPattern; // BackgroundPatternType.name
   final bool hasSeenOnboarding;
   final double fontScale;
+  final String deviceId;
+  final String familyRole; // DeviceRole: none | parent | child
+  final String? linkedChildDeviceId; // set on the parent's device once linked
+  final String? childDisplayName; // set on the child's device (shown to parent)
 
   UserSettingsModel({
     this.id = 1,
@@ -81,6 +87,10 @@ class UserSettingsModel {
     this.backgroundPattern = 'none',
     this.hasSeenOnboarding = false,
     this.fontScale = 1.0,
+    this.deviceId = '',
+    this.familyRole = DeviceRole.none,
+    this.linkedChildDeviceId,
+    this.childDisplayName,
   });
 
   UserSettingsModel copyWith({
@@ -95,6 +105,10 @@ class UserSettingsModel {
     String? backgroundPattern,
     bool? hasSeenOnboarding,
     double? fontScale,
+    String? deviceId,
+    String? familyRole,
+    String? linkedChildDeviceId,
+    String? childDisplayName,
   }) {
     return UserSettingsModel(
       id: id,
@@ -110,6 +124,10 @@ class UserSettingsModel {
       backgroundPattern: backgroundPattern ?? this.backgroundPattern,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       fontScale: fontScale ?? this.fontScale,
+      deviceId: deviceId ?? this.deviceId,
+      familyRole: familyRole ?? this.familyRole,
+      linkedChildDeviceId: linkedChildDeviceId ?? this.linkedChildDeviceId,
+      childDisplayName: childDisplayName ?? this.childDisplayName,
     );
   }
 
@@ -127,6 +145,10 @@ class UserSettingsModel {
       'background_pattern': backgroundPattern,
       'has_seen_onboarding': hasSeenOnboarding ? 1 : 0,
       'font_scale': fontScale,
+      'device_id': deviceId,
+      'family_role': familyRole,
+      'linked_child_device_id': linkedChildDeviceId,
+      'child_display_name': childDisplayName,
     };
   }
 
@@ -145,6 +167,10 @@ class UserSettingsModel {
       backgroundPattern: map['background_pattern'] as String? ?? 'none',
       hasSeenOnboarding: (map['has_seen_onboarding'] as int? ?? 0) == 1,
       fontScale: (map['font_scale'] as num?)?.toDouble() ?? 1.0,
+      deviceId: map['device_id'] as String? ?? '',
+      familyRole: map['family_role'] as String? ?? DeviceRole.none,
+      linkedChildDeviceId: map['linked_child_device_id'] as String?,
+      childDisplayName: map['child_display_name'] as String?,
     );
   }
 }

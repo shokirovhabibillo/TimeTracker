@@ -5,8 +5,6 @@ import '../../data/models/activity_log_model.dart';
 import '../../data/models/step_model.dart';
 import '../../data/repositories/activity_time_repository.dart';
 import '../../data/repositories/step_repository.dart';
-import '../../widgets/coach_mark.dart';
-import 'route_map_screen.dart';
 
 class StepHomeScreen extends StatefulWidget {
   const StepHomeScreen({super.key});
@@ -193,17 +191,6 @@ class _StepHomeScreenState extends State<StepHomeScreen> {
             "Velosiped/avtomobil masofasi — GPS ishlatilmagani uchun o'rtacha tezlik "
             "asosida taxminiy hisoblanadi. Piyoda masofasi qadam soniga asoslanib aniq hisoblanadi.",
             style: TextStyle(fontSize: 11, color: Colors.white38),
-          ),
-          const SizedBox(height: 24),
-          CoachMark(
-            id: 'step_route',
-            message: "Bosilganda GPS orqali yurgan yo'lingiz shakli chiziladi (alohida ruxsat so'raladi)",
-            bubbleAbove: true,
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RouteMapScreen())),
-              icon: const Icon(Icons.route),
-              label: const Text('Yurish shaklini chizib olish'),
-            ),
           ),
         ],
       ),

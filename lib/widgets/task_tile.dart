@@ -98,7 +98,6 @@ class TaskTile extends StatelessWidget {
                     icon: Icon(_statusIcon, size: 22, color: _statusColor(context)),
                     tooltip: 'Bajarilish holati',
                     padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
                     onSelected: onSetStatus,
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'on_time', child: Text('Vaqtida bajardi')),

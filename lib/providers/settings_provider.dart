@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
@@ -18,8 +20,36 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> load() async {
     _settings = await _repository.getSettings();
+    if (_settings.deviceId.isEmpty) {
+      _settings = _settings.copyWith(deviceId: _generateDeviceId());
+      await _repository.saveSettings(_settings);
+    }
     _isLoading = false;
     notifyListeners();
+  }
+
+  String _generateDeviceId() {
+    final rand = Random.secure();
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return List.generate(16, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+  Future<void> setFamilyRole(String role) async {
+    _settings = _settings.copyWith(familyRole: role);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setLinkedChild(String? childDeviceId) async {
+    _settings = _settings.copyWith(linkedChildDeviceId: childDeviceId);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setChildDisplayName(String name) async {
+    _settings = _settings.copyWith(childDisplayName: name);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
   }
 
   Future<void> setThemeId(String themeId) async {

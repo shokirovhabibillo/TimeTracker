@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 16,
+      version: 17,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -176,6 +176,13 @@ class DatabaseHelper {
       await db.execute(
           "ALTER TABLE users_settings ADD COLUMN font_scale REAL NOT NULL DEFAULT 1.0");
     }
+    if (oldVersion < 17) {
+      await db.execute("ALTER TABLE users_settings ADD COLUMN device_id TEXT NOT NULL DEFAULT ''");
+      await db.execute(
+          "ALTER TABLE users_settings ADD COLUMN family_role TEXT NOT NULL DEFAULT 'none'");
+      await db.execute("ALTER TABLE users_settings ADD COLUMN linked_child_device_id TEXT");
+      await db.execute("ALTER TABLE users_settings ADD COLUMN child_display_name TEXT");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -192,7 +199,11 @@ class DatabaseHelper {
         calendar_style TEXT NOT NULL DEFAULT 'timeline',
         background_pattern TEXT NOT NULL DEFAULT 'none',
         has_seen_onboarding INTEGER NOT NULL DEFAULT 0,
-        font_scale REAL NOT NULL DEFAULT 1.0
+        font_scale REAL NOT NULL DEFAULT 1.0,
+        device_id TEXT NOT NULL DEFAULT '',
+        family_role TEXT NOT NULL DEFAULT 'none',
+        linked_child_device_id TEXT,
+        child_display_name TEXT
       );
     ''');
 

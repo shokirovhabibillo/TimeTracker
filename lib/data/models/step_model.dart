@@ -26,22 +26,3 @@ class StepLog {
         lastReading: map['last_reading'] as int,
       );
 }
-
-/// A single tracked-walk session — the sequence of GPS points sampled
-/// while the Route screen was open, used to draw the "shape" of the
-/// walk and compute its distance.
-class RouteSession {
-  final int? id;
-  final DateTime startedAt;
-  final DateTime? endedAt;
-  final double distanceMeters;
-  final List<({double lat, double lng})> points;
-
-  RouteSession({
-    this.id,
-    required this.startedAt,
-    this.endedAt,
-    this.distanceMeters = 0,
-    this.points = const [],
-  });
-}

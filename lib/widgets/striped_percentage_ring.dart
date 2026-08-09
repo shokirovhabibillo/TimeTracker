@@ -64,24 +64,45 @@ class _StripedRingPainter extends CustomPainter {
   _StripedRingPainter({required this.progress, required this.color, required this.trackColor});
 
   static const _dashCount = 60;
-  static const _dashFraction = 0.62; // fraction of each slot that's "on"
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = size.width / 2 - 6;
+    final outerRadius = size.width / 2 - 2;
     final anglePerDash = (2 * pi) / _dashCount;
     final activeDashes = (progress * _dashCount).round();
 
     for (var i = 0; i < _dashCount; i++) {
-      final start = -pi / 2 + i * anglePerDash;
-      final sweep = anglePerDash * _dashFraction;
-      final paint = Paint()
-        ..color = i < activeDashes ? color : trackColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 6
-        ..strokeCap = StrokeCap.round;
-      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), start, sweep, false, paint);
+      final angle = -pi / 2 + i * anglePerDash;
+      final isActive = i < activeDashes;
+
+      // Spokes taper: shorter/thinner in the inactive track, longer and
+      // thicker as they light up — mimics the radiating gradient look.
+      final len = isActive ? outerRadius * 0.42 : outerRadius * 0.22;
+      final innerRadius = outerRadius - len;
+
+      final dx = cos(angle), dy = sin(angle);
+      final p1 = Offset(center.dx + innerRadius * dx, center.dy + innerRadius * dy);
+      final p2 = Offset(center.dx + outerRadius * dx, center.dy + outerRadius * dy);
+
+      Color dashColor;
+      if (isActive) {
+        // Fade the active spokes from a dim tail to full color at the tip
+        // (the most recently "filled" spoke), like the reference image.
+        final t = activeDashes <= 1 ? 1.0 : i / (activeDashes - 1);
+        dashColor = Color.lerp(color.withOpacity(0.35), color, t)!;
+      } else {
+        dashColor = trackColor;
+      }
+
+      canvas.drawLine(
+        p1,
+        p2,
+        Paint()
+          ..color = dashColor
+          ..strokeWidth = isActive ? 3.2 : 2.2
+          ..strokeCap = StrokeCap.round,
+      );
     }
   }
 

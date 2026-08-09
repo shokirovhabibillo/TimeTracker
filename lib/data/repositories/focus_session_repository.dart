@@ -34,6 +34,21 @@ class FocusSessionRepository {
     return maps.map(FocusSessionModel.fromMap).toList();
   }
 
+  /// Total completed focus seconds across all sessions started on [day]
+  /// — used by the all-in-one Dashboard screen.
+  Future<int> getTotalCompletedSecondsForDay(DateTime day) async {
+    final db = await _dbHelper.database;
+    final start = DateTime(day.year, day.month, day.day).toIso8601String();
+    final end = DateTime(day.year, day.month, day.day).add(const Duration(days: 1)).toIso8601String();
+    final maps = await db.query('focus_sessions',
+        where: 'actual_start >= ? AND actual_start < ?', whereArgs: [start, end]);
+    var total = 0;
+    for (final m in maps) {
+      total += (m['completed_duration'] as int?) ?? 0;
+    }
+    return total;
+  }
+
   Future<List<FocusSessionModel>> getSessionsForDay(DateTime day) async {
     final db = await _dbHelper.database;
     final start = DateTime(day.year, day.month, day.day).toIso8601String();

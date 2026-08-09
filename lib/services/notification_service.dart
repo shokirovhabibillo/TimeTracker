@@ -184,6 +184,29 @@ class NotificationService {
   Future<void> cancelMotivationForTask(int taskId) =>
       _plugin.cancel(_motivationNotificationId(taskId));
 
+  /// Shown on the parent's device when the linked child completes a
+  /// task — a plain, immediate notification (not scheduled).
+  Future<void> showChildActivityUpdate(String taskTitle) async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'focus_life_tasks',
+        'Vazifa eslatmalari',
+        channelDescription: 'Rejalashtirilgan vazifalar, uyqu va odatlar uchun eslatmalar',
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+    await _plugin.show(
+      600000 + taskTitle.hashCode.abs() % 100000,
+      "Farzandingiz vazifani bajardi",
+      taskTitle,
+      details,
+    );
+  }
+
   Future<void> cancelAll() => _plugin.cancelAll();
 
   /// Fired by the analytics engine when distracting-app time exceeds

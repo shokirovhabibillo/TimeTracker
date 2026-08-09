@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'config/supabase_config.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/usage_provider.dart';
 import 'providers/lesson_timer_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'services/activity_recognition_service.dart';
+import 'services/family_sync_scheduler.dart';
 import 'services/notification_service.dart';
 
 Future<void> main() async {
@@ -14,6 +17,10 @@ Future<void> main() async {
   await NotificationService.instance.init();
   await NotificationService.instance.requestPermissions();
   ActivityRecognitionService.instance.start(); // asks once; OS remembers the decision after that
+  if (SupabaseConfig.isConfigured) {
+    await Supabase.initialize(url: SupabaseConfig.url, anonKey: SupabaseConfig.anonKey);
+    FamilySyncScheduler.instance.start();
+  }
   runApp(const FocusLifeTrackerApp());
 }
 
