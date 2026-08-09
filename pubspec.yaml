@@ -44,6 +44,9 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
 
+  # Parent-Child cloud sync (pairing + daily plan/completion sharing)
+  supabase_flutter: ^2.8.0
+
   # Step counting and route/shape tracking
   pedometer: ^4.0.2
   geolocator: ^13.0.2
