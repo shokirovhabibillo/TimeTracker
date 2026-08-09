@@ -101,37 +101,35 @@ class _PlannerScreenState extends State<PlannerScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Center(
-              child: Column(
-                children: [
-                  StripedPercentageRing(
-                    value: taskProvider.dayProgress,
-                    color: theme.colorScheme.primary,
-                    size: 92,
-                    glow: extras.glowEnabled,
-                  ),
-                  const SizedBox(height: 4),
-                  Text('Bugungi bajarilish', style: TextStyle(fontSize: 12, color: theme.hintColor)),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: FractionallySizedBox(
-                widthFactor: 0.8,
-                child: MiniCalendarHeader(
-                  day: taskProvider.selectedDay,
-                  onPrev: () =>
-                      taskProvider.selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
-                  onNext: () =>
-                      taskProvider.selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
-                  onToday: () => taskProvider.selectDay(DateTime.now()),
+            padding: const EdgeInsets.fromLTRB(12, 12, 16, 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  children: [
+                    StripedPercentageRing(
+                      value: taskProvider.dayProgress,
+                      color: theme.colorScheme.primary,
+                      size: 76,
+                      glow: extras.glowEnabled,
+                    ),
+                    const SizedBox(height: 2),
+                    Text('Bugungi\nbajarilish',
+                        textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: theme.hintColor)),
+                  ],
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: MiniCalendarHeader(
+                    day: taskProvider.selectedDay,
+                    onPrev: () =>
+                        taskProvider.selectDay(taskProvider.selectedDay.subtract(const Duration(days: 1))),
+                    onNext: () =>
+                        taskProvider.selectDay(taskProvider.selectedDay.add(const Duration(days: 1))),
+                    onToday: () => taskProvider.selectDay(DateTime.now()),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),

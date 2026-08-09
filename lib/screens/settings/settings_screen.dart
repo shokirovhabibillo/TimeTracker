@@ -6,6 +6,8 @@ import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
 import '../../widgets/patterned_background.dart';
+import '../../widgets/swipeable_style_picker.dart';
+import '../../widgets/timer_display.dart';
 import '../counter/counter_screen.dart';
 import '../idp/idp_list_screen.dart';
 import '../news/news_contact_screen.dart';
@@ -69,9 +71,13 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
           _SectionTitle('Ko\'rinish variantlari'),
-          _StyleRow(
-            label: 'Soat',
-            options: const {
+          SwipeableStylePicker(
+            label: 'Soat (chapga/o\'ngga suring)',
+            ids: const [
+              'analog', 'digital', 'smartwatch_round', 'smartwatch_square',
+              'kurant', 'day_cycle', 'islamic_watch',
+            ],
+            displayLabels: const {
               'analog': 'Analog',
               'digital': 'Raqamli',
               'smartwatch_round': 'Smart watch (dumaloq)',
@@ -82,11 +88,30 @@ class SettingsScreen extends StatelessWidget {
             },
             value: settings.settings.clockStyle,
             onChanged: settings.setClockStyle,
-            neumorphic: neumorphic,
+            previewBuilder: (id) {
+              final accent = Theme.of(context).colorScheme.primary;
+              switch (id) {
+                case 'digital':
+                  return DigitalClock(accentColor: accent);
+                case 'smartwatch_round':
+                  return SmartWatchRoundClock(accentColor: accent);
+                case 'smartwatch_square':
+                  return SmartWatchSquareClock(accentColor: accent);
+                case 'kurant':
+                  return KurantClock(accentColor: accent);
+                case 'day_cycle':
+                  return DayCycleClock(accentColor: accent);
+                case 'islamic_watch':
+                  return IslamicWatchClock(accentColor: accent);
+                default:
+                  return MediumClock(accentColor: accent);
+              }
+            },
           ),
-          _StyleRow(
-            label: 'Taymer',
-            options: const {
+          SwipeableStylePicker(
+            label: 'Taymer (chapga/o\'ngga suring)',
+            ids: const ['ring', 'big_digits', 'hourglass', 'flip', 'percentage_ring'],
+            displayLabels: const {
               'ring': "Halqa",
               'big_digits': 'Katta raqam',
               'hourglass': 'Qumsoat',
@@ -95,7 +120,22 @@ class SettingsScreen extends StatelessWidget {
             },
             value: settings.settings.timerStyle,
             onChanged: settings.setTimerStyle,
-            neumorphic: neumorphic,
+            previewBuilder: (id) {
+              final accent = Theme.of(context).colorScheme.primary;
+              const demoTime = '12:34';
+              switch (id) {
+                case 'big_digits':
+                  return BigDigitTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
+                case 'hourglass':
+                  return HourglassTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
+                case 'flip':
+                  return FlipTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
+                case 'percentage_ring':
+                  return PercentageRingTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
+                default:
+                  return TimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '', neonStyle: false);
+              }
+            },
           ),
           _StyleRow(
             label: 'Kalendar',

@@ -63,6 +63,9 @@ class TaskTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
         onTap: onTap,
+        contentPadding: const EdgeInsets.only(left: 8, right: 2),
+        minLeadingWidth: 10,
+        horizontalTitleGap: 8,
         leading: Container(
           width: 6,
           decoration: BoxDecoration(
@@ -88,12 +91,14 @@ class TaskTile extends StatelessWidget {
             futureDay
                 ? Tooltip(
                     message: "Kelgusi kun — hali belgilab bo'lmaydi",
-                    child: Icon(Icons.radio_button_unchecked,
+                    child: Icon(Icons.radio_button_unchecked, size: 22,
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
                   )
                 : PopupMenuButton<String>(
-                    icon: Icon(_statusIcon, color: _statusColor(context)),
+                    icon: Icon(_statusIcon, size: 22, color: _statusColor(context)),
                     tooltip: 'Bajarilish holati',
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
                     onSelected: onSetStatus,
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'on_time', child: Text('Vaqtida bajardi')),
@@ -104,7 +109,9 @@ class TaskTile extends StatelessWidget {
                     ],
                   ),
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline, size: 20),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
               onPressed: () => _confirmDelete(context),
             ),
           ],
