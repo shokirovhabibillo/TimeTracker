@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'noise_generator.dart';
@@ -10,10 +11,18 @@ class WhiteNoiseTrack {
   const WhiteNoiseTrack(this.id, this.label, this.assetPath);
 }
 
-/// Built-in ambient / white-noise generator used during Focus Mode.
-/// Ships with a few looped ambient tracks; drop matching audio files
-/// into `assets/sounds/` (see README) — the player loops them
-/// seamlessly for the duration of a focus session.
+/// Ambient / white-noise generator used during Focus Mode.
+///
+/// **To use real recorded nature sounds instead of the built-in
+/// synthesized ones:** drop your own royalty-free/licensed audio files
+/// into `assets/sounds/` named exactly `white_noise.mp3`, `rain.mp3`,
+/// `forest.mp3`, `brown_noise.mp3` (that folder is already declared in
+/// pubspec.yaml, so anything placed there gets bundled automatically).
+/// This service checks for a real file first and plays it if found;
+/// only if it's missing does it fall back to the procedurally
+/// generated sound. Claude can't legally bundle copyrighted recordings
+/// or record real audio itself — this is the way to swap in genuine
+/// nature recordings without needing any code changes.
 class AudioService {
   AudioService._internal();
   static final AudioService instance = AudioService._internal();
@@ -32,13 +41,27 @@ class AudioService {
   String? get currentTrackId => _currentTrackId;
   double get volume => _volume;
 
+  Future<bool> _hasRealAsset(String assetPath) async {
+    try {
+      final data = await rootBundle.load('assets/$assetPath');
+      return data.lengthInBytes > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> play(String trackId) async {
     final track = tracks.firstWhere((t) => t.id == trackId,
         orElse: () => tracks.first);
     await _player.setReleaseMode(ReleaseMode.loop);
     await _player.setVolume(_volume);
-    final path = await NoiseGenerator.fileFor(track.id);
-    await _player.play(DeviceFileSource(path));
+
+    if (await _hasRealAsset(track.assetPath)) {
+      await _player.play(AssetSource(track.assetPath));
+    } else {
+      final path = await NoiseGenerator.fileFor(track.id);
+      await _player.play(DeviceFileSource(path));
+    }
     _currentTrackId = trackId;
   }
 

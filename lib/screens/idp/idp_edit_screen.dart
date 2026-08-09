@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/models/idp_model.dart';
+import '../../data/models/task_model.dart';
 import '../../data/repositories/idp_repository.dart';
-import 'idp_schedule_dialog.dart';
+import '../planner/add_task_screen.dart';
 
 class IdpEditScreen extends StatefulWidget {
   final IdpCompetency competency;
@@ -85,10 +86,13 @@ class _IdpEditScreenState extends State<IdpEditScreen> {
                             IconButton(
                               icon: const Icon(Icons.event_available, size: 20),
                               tooltip: "Kun jadvaliga qo'shish",
-                              onPressed: () => showScheduleIdpItemDialog(
-                                context,
-                                title: '${widget.competency.name} — ${IdpBucket.label(item.bucket)}',
-                              ),
+                              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => AddTaskScreen(
+                                  initialDay: DateTime.now(),
+                                  initialCategory: TaskCategory.idpDevelopment,
+                                  initialTitle: '${widget.competency.name} — ${IdpBucket.label(item.bucket)}',
+                                ),
+                              )),
                             ),
                           ],
                         ),

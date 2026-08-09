@@ -73,6 +73,8 @@ class UserSettingsModel {
   final String familyRole; // DeviceRole: none | parent | child
   final String? linkedChildDeviceId; // set on the parent's device once linked
   final String? childDisplayName; // set on the child's device (shown to parent)
+  final String buttonStyle; // 'normal' | 'glass' | 'liquid_glass'
+  final String visualizationMode; // 'smartphone' | 'smartwatch'
 
   UserSettingsModel({
     this.id = 1,
@@ -91,6 +93,8 @@ class UserSettingsModel {
     this.familyRole = DeviceRole.none,
     this.linkedChildDeviceId,
     this.childDisplayName,
+    this.buttonStyle = 'normal',
+    this.visualizationMode = 'smartphone',
   });
 
   UserSettingsModel copyWith({
@@ -109,6 +113,8 @@ class UserSettingsModel {
     String? familyRole,
     String? linkedChildDeviceId,
     String? childDisplayName,
+    String? buttonStyle,
+    String? visualizationMode,
   }) {
     return UserSettingsModel(
       id: id,
@@ -128,6 +134,8 @@ class UserSettingsModel {
       familyRole: familyRole ?? this.familyRole,
       linkedChildDeviceId: linkedChildDeviceId ?? this.linkedChildDeviceId,
       childDisplayName: childDisplayName ?? this.childDisplayName,
+      buttonStyle: buttonStyle ?? this.buttonStyle,
+      visualizationMode: visualizationMode ?? this.visualizationMode,
     );
   }
 
@@ -149,6 +157,8 @@ class UserSettingsModel {
       'family_role': familyRole,
       'linked_child_device_id': linkedChildDeviceId,
       'child_display_name': childDisplayName,
+      'button_style': buttonStyle,
+      'visualization_mode': visualizationMode,
     };
   }
 
@@ -171,6 +181,8 @@ class UserSettingsModel {
       familyRole: map['family_role'] as String? ?? DeviceRole.none,
       linkedChildDeviceId: map['linked_child_device_id'] as String?,
       childDisplayName: map['child_display_name'] as String?,
+      buttonStyle: map['button_style'] as String? ?? 'normal',
+      visualizationMode: map['visualization_mode'] as String? ?? 'smartphone',
     );
   }
 }

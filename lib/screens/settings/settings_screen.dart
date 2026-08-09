@@ -6,12 +6,6 @@ import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
 import '../../widgets/patterned_background.dart';
-import '../../widgets/swipeable_style_picker.dart';
-import '../../widgets/timer_display.dart';
-import '../counter/counter_screen.dart';
-import '../idp/idp_list_screen.dart';
-import '../news/news_contact_screen.dart';
-import '../teacher/teacher_home_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -45,6 +39,65 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _SectionTitle("Ko'rinish turi"),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('📱 Smartfon'),
+                  selected: settings.settings.visualizationMode == 'smartphone',
+                  onSelected: (_) => settings.setVisualizationMode('smartphone'),
+                ),
+                ChoiceChip(
+                  label: const Text('⌚ Smartwatch'),
+                  selected: settings.settings.visualizationMode == 'smartwatch',
+                  onSelected: (_) => settings.setVisualizationMode('smartwatch'),
+                ),
+              ],
+            ),
+          ),
+          if (settings.settings.visualizationMode == 'smartphone') ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Tugma uslubi', style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Oddiy'),
+                    selected: settings.settings.buttonStyle == 'normal',
+                    onSelected: (_) => settings.setButtonStyle('normal'),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Shaffof (Glass)'),
+                    selected: settings.settings.buttonStyle == 'glass',
+                    onSelected: (_) => settings.setButtonStyle('glass'),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Liquid Glass'),
+                    selected: settings.settings.buttonStyle == 'liquid_glass',
+                    onSelected: (_) => settings.setButtonStyle('liquid_glass'),
+                  ),
+                ],
+              ),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                "Smartwatch rejimida barcha funksiyalar bitta ekranda, erkin suriladigan "
+                "doiralar sifatida ko'rinadi.",
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          const Divider(),
           _SectionTitle('Mavzu'),
           for (final group in AgeGroup.values) _ThemeGroupSection(group: group, neumorphic: neumorphic),
           const SizedBox(height: 8),
@@ -71,71 +124,12 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
           _SectionTitle('Ko\'rinish variantlari'),
-          SwipeableStylePicker(
-            label: 'Soat (chapga/o\'ngga suring)',
-            ids: const [
-              'analog', 'digital', 'smartwatch_round', 'smartwatch_square',
-              'kurant', 'day_cycle', 'islamic_watch',
-            ],
-            displayLabels: const {
-              'analog': 'Analog',
-              'digital': 'Raqamli',
-              'smartwatch_round': 'Smart watch (dumaloq)',
-              'smartwatch_square': "Smart watch (to'rtburchak)",
-              'kurant': 'Kurant (mayatnikli)',
-              'day_cycle': 'Quyosh/Oy aylanishi',
-              'islamic_watch': 'Islomiy soat (Qibla)',
-            },
-            value: settings.settings.clockStyle,
-            onChanged: settings.setClockStyle,
-            previewBuilder: (id) {
-              final accent = Theme.of(context).colorScheme.primary;
-              switch (id) {
-                case 'digital':
-                  return DigitalClock(accentColor: accent);
-                case 'smartwatch_round':
-                  return SmartWatchRoundClock(accentColor: accent);
-                case 'smartwatch_square':
-                  return SmartWatchSquareClock(accentColor: accent);
-                case 'kurant':
-                  return KurantClock(accentColor: accent);
-                case 'day_cycle':
-                  return DayCycleClock(accentColor: accent);
-                case 'islamic_watch':
-                  return IslamicWatchClock(accentColor: accent);
-                default:
-                  return MediumClock(accentColor: accent);
-              }
-            },
-          ),
-          SwipeableStylePicker(
-            label: 'Taymer (chapga/o\'ngga suring)',
-            ids: const ['ring', 'big_digits', 'hourglass', 'flip', 'percentage_ring'],
-            displayLabels: const {
-              'ring': "Halqa",
-              'big_digits': 'Katta raqam',
-              'hourglass': 'Qumsoat',
-              'flip': "Retro (mexanik qog'ozli)",
-              'percentage_ring': 'Foizli halqa',
-            },
-            value: settings.settings.timerStyle,
-            onChanged: settings.setTimerStyle,
-            previewBuilder: (id) {
-              final accent = Theme.of(context).colorScheme.primary;
-              const demoTime = '12:34';
-              switch (id) {
-                case 'big_digits':
-                  return BigDigitTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
-                case 'hourglass':
-                  return HourglassTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
-                case 'flip':
-                  return FlipTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
-                case 'percentage_ring':
-                  return PercentageRingTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
-                default:
-                  return TimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '', neonStyle: false);
-              }
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              "Soat va taymer ko'rinishini tanlash endi Fokus ekranidagi 🎨 tugmasi orqali qilinadi.",
+              style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
+            ),
           ),
           _StyleRow(
             label: 'Kalendar',
@@ -183,46 +177,6 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (v) => settings.setDistractionLimit(v.round()),
             ),
             trailing: Text('${settings.settings.dailyDistractionLimitMin} daq'),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.pin_outlined),
-            title: const Text('Sanoq (Counter)'),
-            subtitle: const Text("Takrorlashlarni hisoblash uchun"),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CounterScreen()),
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.trending_up),
-            title: const Text('Shaxsiy rivojlanish rejasi (IDP)'),
-            subtitle: const Text("70-20-10 modeli bo'yicha qobiliyatlarni rivojlantirish"),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const IdpListScreen()),
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.campaign_outlined),
-            title: const Text('Yangiliklar va aloqa'),
-            subtitle: const Text("Yangilanishlar, boshqa ilovalarimiz, aloqa"),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const NewsContactScreen()),
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.school_outlined),
-            title: const Text("O'qituvchi rejasi"),
-            subtitle: const Text('Dars bosqichlari ketma-ketligi va taymeri'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const TeacherHomeScreen()),
-            ),
           ),
           const Divider(),
           ListTile(

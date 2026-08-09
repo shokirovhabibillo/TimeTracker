@@ -16,7 +16,39 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   ThemeSpec get themeSpec => AppTheme.specById(_settings.themeType);
-  ThemeData get themeData => themeSpec.data;
+  ThemeData get themeData {
+    var base = themeSpec.data;
+    if (_settings.backgroundPattern != 'none') {
+      base = base.copyWith(scaffoldBackgroundColor: Colors.transparent);
+    }
+    if (_settings.buttonStyle == 'glass' || _settings.buttonStyle == 'liquid_glass') {
+      final isLiquid = _settings.buttonStyle == 'liquid_glass';
+      final accent = base.colorScheme.primary;
+      base = base.copyWith(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: accent.withOpacity(isLiquid ? 0.28 : 0.16),
+            foregroundColor: base.colorScheme.onSurface,
+            elevation: isLiquid ? 8 : 0,
+            shadowColor: accent.withOpacity(0.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+              side: BorderSide(color: accent.withOpacity(isLiquid ? 0.6 : 0.35), width: 1.2),
+            ),
+          ),
+        ),
+        cardTheme: base.cardTheme.copyWith(
+          color: base.colorScheme.surface.withOpacity(isLiquid ? 0.55 : 0.75),
+          elevation: isLiquid ? 6 : 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: accent.withOpacity(0.25), width: 1),
+          ),
+        ),
+      );
+    }
+    return base;
+  }
 
   Future<void> load() async {
     _settings = await _repository.getSettings();
@@ -48,6 +80,18 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setChildDisplayName(String name) async {
     _settings = _settings.copyWith(childDisplayName: name);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setButtonStyle(String style) async {
+    _settings = _settings.copyWith(buttonStyle: style);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
+  Future<void> setVisualizationMode(String mode) async {
+    _settings = _settings.copyWith(visualizationMode: mode);
     notifyListeners();
     await _repository.saveSettings(_settings);
   }

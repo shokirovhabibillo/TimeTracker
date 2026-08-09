@@ -22,7 +22,8 @@ class AddTaskScreen extends StatefulWidget {
   final TaskModel? existing;
   final DateTime initialDay;
   final String? initialCategory;
-  const AddTaskScreen({super.key, this.existing, required this.initialDay, this.initialCategory});
+  final String? initialTitle;
+  const AddTaskScreen({super.key, this.existing, required this.initialDay, this.initialCategory, this.initialTitle});
 
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
@@ -45,7 +46,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void initState() {
     super.initState();
     final e = widget.existing;
-    _titleController = TextEditingController(text: e?.title ?? '');
+    _titleController = TextEditingController(text: e?.title ?? widget.initialTitle ?? '');
     _category = e?.category ?? widget.initialCategory ?? TaskCategory.work;
     _start = e?.startTime ??
         DateTime(widget.initialDay.year, widget.initialDay.month,

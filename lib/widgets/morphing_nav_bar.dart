@@ -1,4 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/settings_provider.dart';
 
 class NavItem {
   final IconData icon;
@@ -15,6 +19,10 @@ class NavItem {
 /// Both the indicator circle and the icons are positioned from the same
 /// slot-center calculation (slot index -> pixel center), so they always
 /// line up exactly regardless of item count.
+///
+/// When the user has selected a "glass"/"liquid_glass" button style in
+/// Settings, the bar renders as frosted glass (blurred, translucent,
+/// glowing) instead of the plain solid pill.
 class MorphingNavBar extends StatelessWidget {
   final List<NavItem> items;
   final int selectedIndex;
@@ -36,63 +44,85 @@ class MorphingNavBar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isHorizontal = axis == Axis.horizontal;
     final count = items.length;
-
+    final buttonStyle = context.watch<SettingsProvider>().settings.buttonStyle;
+    final isGlass = buttonStyle == 'glass' || buttonStyle == 'liquid_glass';
+    final isLiquid = buttonStyle == 'liquid_glass';
     final barLength = slotSize * count;
 
-    return Container(
-      margin: EdgeInsets.all(isHorizontal ? 12 : 16),
-      padding: const EdgeInsets.all(8),
+    final box = DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withOpacity(0.32),
+        color: scheme.surfaceContainerHighest.withOpacity(isGlass ? 0.18 : 0.32),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
+        border: isGlass ? Border.all(color: scheme.primary.withOpacity(isLiquid ? 0.5 : 0.3), width: 1) : null,
       ),
-      child: SizedBox(
-        width: isHorizontal ? barLength : slotSize,
-        height: isHorizontal ? slotSize : barLength,
-        child: Stack(
-          children: [
-            // Indicator circle — centered in the selected slot.
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOutCubic,
-              left: isHorizontal ? selectedIndex * slotSize + (slotSize - indicatorSize) / 2 : (slotSize - indicatorSize) / 2,
-              top: isHorizontal ? (slotSize - indicatorSize) / 2 : selectedIndex * slotSize + (slotSize - indicatorSize) / 2,
-              width: indicatorSize,
-              height: indicatorSize,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: isHorizontal ? barLength : slotSize,
+          height: isHorizontal ? slotSize : barLength,
+          child: Stack(
+            children: [
+              // Indicator circle — centered in the selected slot.
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeInOutCubic,
+                left: isHorizontal ? selectedIndex * slotSize + (slotSize - indicatorSize) / 2 : (slotSize - indicatorSize) / 2,
+                top: isHorizontal ? (slotSize - indicatorSize) / 2 : selectedIndex * slotSize + (slotSize - indicatorSize) / 2,
+                width: indicatorSize,
+                height: indicatorSize,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+                ),
               ),
-            ),
-            // Icons — each centered in its own slot, same slot math as the indicator.
-            ...List.generate(count, (i) {
-              final selected = i == selectedIndex;
-              final item = items[i];
-              return Positioned(
-                left: isHorizontal ? i * slotSize : 0,
-                top: isHorizontal ? 0 : i * slotSize,
-                width: slotSize,
-                height: slotSize,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () => onSelected(i),
-                    child: Center(
-                      child: Icon(
-                        selected ? item.selectedIcon : item.icon,
-                        color: selected ? scheme.onPrimary : scheme.onSurface.withOpacity(0.6),
+              // Icons — each centered in its own slot, same slot math as the indicator.
+              ...List.generate(count, (i) {
+                final selected = i == selectedIndex;
+                final item = items[i];
+                return Positioned(
+                  left: isHorizontal ? i * slotSize : 0,
+                  top: isHorizontal ? 0 : i * slotSize,
+                  width: slotSize,
+                  height: slotSize,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => onSelected(i),
+                      child: Center(
+                        child: Icon(
+                          selected ? item.selectedIcon : item.icon,
+                          color: selected ? scheme.onPrimary : scheme.onSurface.withOpacity(0.6),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
+    );
+
+    final clipped = ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: isGlass
+          ? BackdropFilter(filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14), child: box)
+          : box,
+    );
+
+    return Container(
+      margin: EdgeInsets.all(isHorizontal ? 12 : 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          if (isLiquid)
+            BoxShadow(color: scheme.primary.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8))
+          else
+            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: clipped,
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../widgets/gamified_progress.dart';
 import '../../widgets/list_calendar.dart';
 import '../../widgets/mini_calendar.dart';
 import '../../widgets/progress_bar.dart';
+import '../../widgets/swipeable_style_picker.dart';
 import '../../widgets/timer_display.dart';
 import '../../widgets/motivation_board.dart';
 
@@ -126,6 +127,20 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
         timer = PercentageRingTimerDisplay(
             timeText: timerTimeText, progress: timerProgressValue, accentColor: accent, subtitle: timerSubtitle);
         break;
+      case 'egg':
+        timer = EggTimerDisplay(
+            timeText: timerTimeText, progress: timerProgressValue, accentColor: accent, subtitle: timerSubtitle);
+        break;
+      case 'tomato':
+        timer = TomatoTimerDisplay(timeText: timerTimeText, progress: timerProgressValue, subtitle: timerSubtitle);
+        break;
+      case 'mechanical_stopwatch':
+        timer = MechanicalStopwatchDisplay(
+            timeText: timerTimeText, progress: timerProgressValue, subProgress: timerProgressValue, subtitle: timerSubtitle);
+        break;
+      case 'hud':
+        timer = HudTimerDisplay(timeText: timerTimeText, subtitle: timerSubtitle);
+        break;
       case 'flip':
         timer = FlipTimerDisplay(timeText: timerTimeText, accentColor: accent, subtitle: timerSubtitle);
         break;
@@ -158,6 +173,9 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
         break;
       case 'islamic_watch':
         clock = IslamicWatchClock(accentColor: accent);
+        break;
+      case 'gear_wall_clock':
+        clock = GearWallClock(accentColor: accent);
         break;
       default:
         clock = MediumClock(accentColor: accent);
@@ -439,10 +457,6 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,6 +474,132 @@ class _Header extends StatelessWidget {
           const SizedBox(width: 12),
           Text('${(progress * 100).round()}%',
               style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
+          IconButton(
+            icon: const Icon(Icons.palette_outlined),
+            tooltip: "Soat/Taymer ko'rinishi",
+            onPressed: () => _showStylePicker(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStylePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const _ClockTimerStyleSheet(),
+    );
+  }
+}
+
+class _ClockTimerStyleSheet extends StatelessWidget {
+  const _ClockTimerStyleSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) => ListView(
+        controller: scrollController,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SwipeableStylePicker(
+            label: 'Soat (chapga/o\'ngga suring)',
+            ids: const [
+              'analog', 'digital', 'smartwatch_round', 'smartwatch_square',
+              'kurant', 'day_cycle', 'islamic_watch', 'gear_wall_clock',
+            ],
+            displayLabels: const {
+              'analog': 'Analog',
+              'digital': 'Raqamli',
+              'smartwatch_round': 'Smart watch (dumaloq)',
+              'smartwatch_square': "Smart watch (to'rtburchak)",
+              'kurant': 'Kurant (mayatnikli)',
+              'day_cycle': 'Quyosh/Oy aylanishi',
+              'islamic_watch': 'Islomiy soat (Qibla)',
+              'gear_wall_clock': "Mexanik g'ildirakli (3D)",
+            },
+            value: settings.settings.clockStyle,
+            onChanged: settings.setClockStyle,
+            previewBuilder: (id) {
+              final accent = Theme.of(context).colorScheme.primary;
+              switch (id) {
+                case 'digital':
+                  return DigitalClock(accentColor: accent);
+                case 'smartwatch_round':
+                  return SmartWatchRoundClock(accentColor: accent);
+                case 'smartwatch_square':
+                  return SmartWatchSquareClock(accentColor: accent);
+                case 'kurant':
+                  return KurantClock(accentColor: accent);
+                case 'day_cycle':
+                  return DayCycleClock(accentColor: accent);
+                case 'islamic_watch':
+                  return IslamicWatchClock(accentColor: accent);
+                case 'gear_wall_clock':
+                  return GearWallClock(accentColor: accent);
+                default:
+                  return MediumClock(accentColor: accent);
+              }
+            },
+          ),
+          SwipeableStylePicker(
+            label: 'Taymer (chapga/o\'ngga suring)',
+            ids: const [
+              'ring', 'big_digits', 'hourglass', 'flip', 'percentage_ring',
+              'egg', 'tomato', 'mechanical_stopwatch', 'hud',
+            ],
+            displayLabels: const {
+              'ring': "Halqa",
+              'big_digits': 'Katta raqam',
+              'hourglass': 'Qumsoat',
+              'flip': "Retro (mexanik qog'ozli)",
+              'percentage_ring': 'Foizli halqa',
+              'egg': "Tuxum taymer (3D)",
+              'tomato': 'Pomidor (Pomodoro, 3D)',
+              'mechanical_stopwatch': 'Mexanik sekundomer (3D)',
+              'hud': 'HUD (avtomobil uslubi)',
+            },
+            value: settings.settings.timerStyle,
+            onChanged: settings.setTimerStyle,
+            previewBuilder: (id) {
+              final accent = Theme.of(context).colorScheme.primary;
+              const demoTime = '12:34';
+              switch (id) {
+                case 'big_digits':
+                  return BigDigitTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
+                case 'hourglass':
+                  return HourglassTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
+                case 'flip':
+                  return FlipTimerDisplay(timeText: demoTime, accentColor: accent, subtitle: '');
+                case 'percentage_ring':
+                  return PercentageRingTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
+                case 'egg':
+                  return EggTimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '');
+                case 'tomato':
+                  return TomatoTimerDisplay(timeText: demoTime, progress: 0.4, subtitle: '');
+                case 'mechanical_stopwatch':
+                  return MechanicalStopwatchDisplay(timeText: demoTime, progress: 0.4, subProgress: 0.4, subtitle: '');
+                case 'hud':
+                  return HudTimerDisplay(timeText: demoTime, subtitle: '');
+                default:
+                  return TimerDisplay(timeText: demoTime, progress: 0.4, accentColor: accent, subtitle: '', neonStyle: false);
+              }
+            },
+          ),
         ],
       ),
     );

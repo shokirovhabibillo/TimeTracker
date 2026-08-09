@@ -12,6 +12,7 @@ import '../more/more_menu_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../planner/planner_screen.dart';
 import '../settings/settings_screen.dart';
+import '../smartwatch/smartwatch_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  late final PageController _pageController = PageController(initialPage: 0);
 
   Widget _screenAt(int i) {
     switch (i) {
@@ -36,6 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return const MoreMenuScreen();
     }
+  }
+
+  void _goToIndex(int i) {
+    setState(() => _index = i);
+    _pageController.animateToPage(i, duration: const Duration(milliseconds: 260), curve: Curves.easeInOutCubic);
+    if (i == 0) context.read<TaskProvider>().loadTasksForSelectedDay();
   }
 
   static const _items = [
@@ -68,11 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final patternName = context.watch<SettingsProvider>().settings.backgroundPattern;
+    final settingsProvider = context.watch<SettingsProvider>();
+    final patternName = settingsProvider.settings.backgroundPattern;
     final pattern = BackgroundPatternType.values.firstWhere(
       (p) => p.name == patternName,
       orElse: () => BackgroundPatternType.none,
     );
+
+    if (settingsProvider.settings.visualizationMode == 'smartwatch') {
+      return const SmartwatchHomeScreen();
+    }
 
     return ChangeNotifierProvider(
       create: (_) => TimerProvider(),
@@ -94,11 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
         final nav = MorphingNavBar(
           items: _items,
           selectedIndex: _index,
-          onSelected: (i) {
+          onSelected: _goToIndex,
+          axis: isLandscape ? Axis.vertical : Axis.horizontal,
+        );
+
+        final pageView = PageView(
+          controller: _pageController,
+          onPageChanged: (i) {
             setState(() => _index = i);
             if (i == 0) context.read<TaskProvider>().loadTasksForSelectedDay();
           },
-          axis: isLandscape ? Axis.vertical : Axis.horizontal,
+          children: screens,
         );
 
         return Scaffold(
@@ -108,12 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? Row(
                     children: [
                       nav,
-                      Expanded(child: IndexedStack(index: _index, children: screens)),
+                      Expanded(child: pageView),
                     ],
                   )
                 : Column(
                     children: [
-                      Expanded(child: IndexedStack(index: _index, children: screens)),
+                      Expanded(child: pageView),
                       nav,
                     ],
                   ),
