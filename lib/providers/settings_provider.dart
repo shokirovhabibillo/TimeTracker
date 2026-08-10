@@ -24,18 +24,43 @@ class SettingsProvider extends ChangeNotifier {
     if (_settings.buttonStyle == 'glass' || _settings.buttonStyle == 'liquid_glass') {
       final isLiquid = _settings.buttonStyle == 'liquid_glass';
       final accent = base.colorScheme.primary;
+      final glassFill = accent.withOpacity(isLiquid ? 0.22 : 0.14);
+      final glassRim = BorderSide(color: Colors.white.withOpacity(isLiquid ? 0.5 : 0.28), width: 0.7);
       base = base.copyWith(
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: accent.withOpacity(isLiquid ? 0.22 : 0.14),
+            backgroundColor: glassFill,
             foregroundColor: base.colorScheme.onSurface,
             elevation: isLiquid ? 10 : 0,
             shadowColor: accent.withOpacity(0.45),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-              side: BorderSide(color: Colors.white.withOpacity(isLiquid ? 0.5 : 0.28), width: 0.7),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28), side: glassRim),
           ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            backgroundColor: glassFill,
+            foregroundColor: base.colorScheme.onSurface,
+            side: glassRim,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(foregroundColor: base.colorScheme.onSurface),
+        ),
+        // ChoiceChip/FilterChip/ActionChip (the Kalendar toggle, background
+        // pattern picker, etc.) pull from ChipThemeData, not
+        // ElevatedButtonTheme — without this they keep the default flat
+        // black-outlined look even when glass mode is on.
+        chipTheme: base.chipTheme.copyWith(
+          backgroundColor: base.colorScheme.surface.withOpacity(isLiquid ? 0.35 : 0.5),
+          selectedColor: glassFill,
+          disabledColor: base.colorScheme.surface.withOpacity(0.2),
+          labelStyle: TextStyle(color: base.colorScheme.onSurface),
+          secondaryLabelStyle: TextStyle(color: base.colorScheme.onSurface),
+          side: glassRim,
+          shape: StadiumBorder(side: glassRim),
+          elevation: isLiquid ? 4 : 0,
+          pressElevation: isLiquid ? 6 : 1,
         ),
         cardTheme: base.cardTheme.copyWith(
           color: base.colorScheme.surface.withOpacity(isLiquid ? 0.5 : 0.75),

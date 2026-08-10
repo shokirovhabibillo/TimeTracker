@@ -101,25 +101,28 @@ class MorphingNavBar extends StatelessWidget {
     // Dark, blurred, softly-lit pill for glass modes (a la Telegram Plus);
     // the flat translucent surface for the normal style.
     final box = Stack(
+      fit: StackFit.loose,
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            color: isGlass ? Colors.black.withOpacity(isLiquid ? 0.38 : 0.3) : scheme.surfaceContainerHighest.withOpacity(0.32),
+            color: isGlass ? Colors.black.withOpacity(isLiquid ? 0.3 : 0.22) : scheme.surfaceContainerHighest.withOpacity(0.32),
             borderRadius: BorderRadius.circular(28),
             border: isGlass ? Border.all(color: Colors.white.withOpacity(isLiquid ? 0.22 : 0.14), width: 0.7) : null,
           ),
           child: navContent,
         ),
         if (isGlass)
-          IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.white.withOpacity(0.08), Colors.transparent],
-                  stops: const [0.0, 0.55],
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.white.withOpacity(0.08), Colors.transparent],
+                    stops: const [0.0, 0.55],
+                  ),
                 ),
               ),
             ),
