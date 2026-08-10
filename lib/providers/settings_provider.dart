@@ -27,22 +27,22 @@ class SettingsProvider extends ChangeNotifier {
       base = base.copyWith(
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: accent.withOpacity(isLiquid ? 0.28 : 0.16),
+            backgroundColor: accent.withOpacity(isLiquid ? 0.22 : 0.14),
             foregroundColor: base.colorScheme.onSurface,
-            elevation: isLiquid ? 8 : 0,
-            shadowColor: accent.withOpacity(0.5),
+            elevation: isLiquid ? 10 : 0,
+            shadowColor: accent.withOpacity(0.45),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(28),
-              side: BorderSide(color: accent.withOpacity(isLiquid ? 0.6 : 0.35), width: 1.2),
+              side: BorderSide(color: Colors.white.withOpacity(isLiquid ? 0.5 : 0.28), width: 0.7),
             ),
           ),
         ),
         cardTheme: base.cardTheme.copyWith(
-          color: base.colorScheme.surface.withOpacity(isLiquid ? 0.55 : 0.75),
+          color: base.colorScheme.surface.withOpacity(isLiquid ? 0.5 : 0.75),
           elevation: isLiquid ? 6 : 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
-            side: BorderSide(color: accent.withOpacity(0.25), width: 1),
+            side: BorderSide(color: Colors.white.withOpacity(0.18), width: 0.6),
           ),
         ),
       );

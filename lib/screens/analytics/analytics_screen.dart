@@ -81,6 +81,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
             ),
           ),
+          if (context.watch<TaskProvider>().incompleteFromPast.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scheme.secondary.withOpacity(0.4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.pending_actions, size: 16, color: scheme.secondary),
+                        const SizedBox(width: 6),
+                        Text("Bajarilmagan vazifalar (o'tgan kunlardan)",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: scheme.secondary)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ...context.watch<TaskProvider>().incompleteFromPast.map((task) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Text(task.title,
+                                      style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis)),
+                              TextButton(
+                                onPressed: () => context.read<TaskProvider>().rolloverToSelectedDay(task),
+                                child: const Text("Bugunga ko'chirish", style: TextStyle(fontSize: 11)),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
           if (_rolloverCount != null && _rolloverCount! > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),

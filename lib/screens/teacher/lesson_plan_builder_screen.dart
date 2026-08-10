@@ -132,7 +132,7 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
               decoration: const InputDecoration(labelText: "Dars rejasi nomi (masalan: Algebra 9-sinf)"),
             ),
           ),
-          if (widget.domain == PlanDomain.teacher) ...[
+          if (widget.domain == PlanDomain.teacher && _segments.isEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: ExpansionTile(
@@ -177,19 +177,20 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
               ),
             ),
           ],
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              spacing: 8,
-              children: LessonDurationTemplate.all
-                  .map((t) => ActionChip(
-                        avatar: const Icon(Icons.bolt, size: 16),
-                        label: Text(t.label),
-                        onPressed: () => _applyTemplate(t),
-                      ))
-                  .toList(),
+          if (_segments.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                children: LessonDurationTemplate.all
+                    .map((t) => ActionChip(
+                          avatar: const Icon(Icons.bolt, size: 16),
+                          label: Text(t.label),
+                          onPressed: () => _applyTemplate(t),
+                        ))
+                    .toList(),
+              ),
             ),
-          ),
           if (_targetMinutes != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -229,7 +230,7 @@ class _LessonPlanBuilderScreenState extends State<LessonPlanBuilderScreen> {
                         style: TextStyle(color: theme.hintColor)),
                   )
                 : ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                     itemCount: _segments.length,
                     onReorder: _reorder,
                     itemBuilder: (context, index) {

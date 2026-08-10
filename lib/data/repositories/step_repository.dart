@@ -9,6 +9,9 @@ class StepRepository {
     return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
+  String _dateKeyFor(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   Future<StepLog> getOrCreateTodayLog(int currentCumulativeReading) async {
     final db = await _dbHelper.database;
     final today = _todayKey();
@@ -27,7 +30,21 @@ class StepRepository {
       }
       return log;
     }
-    final newLog = StepLog(date: today, midnightBaseline: currentCumulativeReading, lastReading: currentCumulativeReading);
+
+    // First reading of a new day: the step sensor is cumulative since
+    // the device's last reboot, not since midnight — so if we just used
+    // "whatever it reads right now" as the baseline, every step taken
+    // before the app happened to be opened today would be silently
+    // discarded. Instead, use yesterday's last known reading as today's
+    // starting point (the counter only resets on a device reboot, which
+    // is rare), so steps taken before first opening the app still count.
+    final yesterday = _dateKeyFor(DateTime.now().subtract(const Duration(days: 1)));
+    final prevRows = await db.query('step_logs', where: 'date = ?', whereArgs: [yesterday], limit: 1);
+    final baseline = prevRows.isNotEmpty && (prevRows.first['last_reading'] as int) <= currentCumulativeReading
+        ? prevRows.first['last_reading'] as int
+        : currentCumulativeReading;
+
+    final newLog = StepLog(date: today, midnightBaseline: baseline, lastReading: currentCumulativeReading);
     final id = await db.insert('step_logs', newLog.toMap()..remove('id'));
     return StepLog(id: id, date: newLog.date, midnightBaseline: newLog.midnightBaseline, lastReading: newLog.lastReading);
   }

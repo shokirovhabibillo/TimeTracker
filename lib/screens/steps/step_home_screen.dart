@@ -86,6 +86,20 @@ class _StepHomeScreenState extends State<StepHomeScreen> {
               padding: const EdgeInsets.only(bottom: 16),
               child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
             ),
+          if (_error == null && steps == 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                child: const Text(
+                  "Qadam hali 0 ko'rinsa: ba'zi telefonlarda (masalan Xiaomi/MIUI) "
+                  "batareya tejash rejimi fon sensorlarini cheklaydi. Sozlamalar → "
+                  "Ilovalar → Focus & Life Tracker → Batareya → \"Cheklovsiz\" qiling.",
+                  style: TextStyle(fontSize: 11, color: Colors.white70),
+                ),
+              ),
+            ),
           const Text('Segodnya', style: TextStyle(color: Colors.white54, fontSize: 12)),
           const SizedBox(height: 8),
           // Weekly mini-view — 7 small ring previews, Monday first.

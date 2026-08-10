@@ -170,52 +170,6 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ),
             ),
           const SizedBox(height: 8),
-          if (taskProvider.incompleteFromPast.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.4)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.pending_actions, size: 16, color: theme.colorScheme.secondary),
-                        const SizedBox(width: 6),
-                        Text("Bajarilmagan vazifalar (o'tgan kunlardan)",
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.secondary)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ...taskProvider.incompleteFromPast.map((task) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: Text(task.title,
-                                      style: const TextStyle(fontSize: 13),
-                                      overflow: TextOverflow.ellipsis)),
-                              TextButton(
-                                onPressed: () => taskProvider.rolloverToSelectedDay(task),
-                                child: const Text("Bugunga ko'chirish", style: TextStyle(fontSize: 11)),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: 8),
           Expanded(
             child: taskProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
