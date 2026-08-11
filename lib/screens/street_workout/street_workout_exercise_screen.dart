@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../data/street_workout_catalog.dart';
+import '../../widgets/exercise_pattern_map.dart';
+import '../../widgets/schematic_exercise_animation.dart';
 
 class StreetWorkoutExerciseScreen extends StatelessWidget {
   final StreetWorkoutExercise exercise;
@@ -16,16 +18,13 @@ class StreetWorkoutExerciseScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Container(
-            height: 180,
+            height: 220,
             decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.play_circle_outline, size: 44, color: scheme.primary),
-                const SizedBox(height: 8),
-                Text('Texnika animatsiyasi (${exercise.id})', style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
-                Text("tez orada qo'shiladi", style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor)),
-              ],
+            child: Center(
+              child: SchematicExerciseAnimation(
+                pattern: movementPatternForExerciseId(exercise.id),
+                color: scheme.primary,
+              ),
             ),
           ),
           const SizedBox(height: 16),

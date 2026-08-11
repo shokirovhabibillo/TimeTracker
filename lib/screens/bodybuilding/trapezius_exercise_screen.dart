@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../data/trapezius_catalog.dart';
+import '../../widgets/exercise_pattern_map.dart';
+import '../../widgets/schematic_exercise_animation.dart';
 
 class TrapeziusExerciseScreen extends StatelessWidget {
   final TrapeziusExercise exercise;
@@ -15,24 +17,22 @@ class TrapeziusExerciseScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Placeholder for the real technique animation (GIF/MP4/Lottie).
-          // Drop the actual asset file into assets/exercises/<id>.* and
-          // swap this Container for a Video/Lottie widget when ready.
+          // Simple animated schematic (stick-figure + phase labels) —
+          // not a substitute for a real recorded video, but shows the
+          // movement pattern clearly. Drop a real asset into
+          // assets/exercises/<id>.* and swap this Container for a
+          // Video/Lottie widget when one becomes available.
           Container(
-            height: 200,
+            height: 220,
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.play_circle_outline, size: 48, color: scheme.primary),
-                const SizedBox(height: 8),
-                Text('Texnika animatsiyasi (${exercise.id})',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
-                Text("tez orada qo'shiladi", style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor)),
-              ],
+            child: Center(
+              child: SchematicExerciseAnimation(
+                pattern: movementPatternForExerciseId(exercise.id),
+                color: scheme.primary,
+              ),
             ),
           ),
           const SizedBox(height: 16),

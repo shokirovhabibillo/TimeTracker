@@ -114,13 +114,19 @@ class _CounterScreenState extends State<CounterScreen> {
         child: Stack(
           children: [
             Center(
-              child: Column(
+              child: SingleChildScrollView(
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (_imagePath != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: Image.file(File(_imagePath!), width: 240, height: 240, fit: BoxFit.cover),
+                      child: Image.file(
+                        File(_imagePath!),
+                        width: MediaQuery.of(context).size.width * 0.82,
+                        height: MediaQuery.of(context).size.width * 0.82,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   if (_label != null) ...[
                     const SizedBox(height: 12),
@@ -146,6 +152,7 @@ class _CounterScreenState extends State<CounterScreen> {
                   Text(reachedTarget ? "Maqsadga yetdingiz! \ud83c\udf89" : 'Sanash uchun raqamga yoki + tugmasiga bosing',
                       style: TextStyle(color: Theme.of(context).hintColor)),
                 ],
+                ),
               ),
             ),
             Positioned(
