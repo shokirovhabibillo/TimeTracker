@@ -9,6 +9,7 @@ import '../dashboard/dashboard_screen.dart';
 import '../family/family_home_screen.dart';
 import '../focus/focus_mode_screen.dart';
 import '../idp/idp_list_screen.dart';
+import '../medicine/medication_home_screen.dart';
 import '../news/news_contact_screen.dart';
 import '../planner/planner_screen.dart';
 import '../reading/reading_home_screen.dart';
@@ -47,6 +48,7 @@ class SmartwatchHomeScreen extends StatelessWidget {
     (icon: Icons.chrome_reader_mode, label: "O'qish rejimi", color: Color(0xFF84CC16), builder: _readingBuilder),
     (icon: Icons.family_restroom, label: 'Ota-ona/Farzand', color: Color(0xFFD946EF), builder: _familyBuilder),
     (icon: Icons.campaign, label: 'Yangiliklar', color: Color(0xFF78716C), builder: _newsBuilder),
+    (icon: Icons.medication, label: 'Dori qabul qilish', color: Color(0xFF16A34A), builder: _medicationBuilder),
   ];
 
   static Widget _plannerBuilder(BuildContext c) => const PlannerScreen();
@@ -68,6 +70,7 @@ class SmartwatchHomeScreen extends StatelessWidget {
   static Widget _readingBuilder(BuildContext c) => const ReadingHomeScreen();
   static Widget _familyBuilder(BuildContext c) => const FamilyHomeScreen();
   static Widget _newsBuilder(BuildContext c) => const NewsContactScreen();
+  static Widget _medicationBuilder(BuildContext c) => const MedicationHomeScreen();
 
   @override
   Widget build(BuildContext context) {

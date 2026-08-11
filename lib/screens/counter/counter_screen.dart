@@ -119,8 +119,8 @@ class _CounterScreenState extends State<CounterScreen> {
                 children: [
                   if (_imagePath != null)
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(File(_imagePath!), width: 140, height: 140, fit: BoxFit.cover),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.file(File(_imagePath!), width: 240, height: 240, fit: BoxFit.cover),
                     ),
                   if (_label != null) ...[
                     const SizedBox(height: 12),
@@ -150,7 +150,7 @@ class _CounterScreenState extends State<CounterScreen> {
             ),
             Positioned(
               left: 24,
-              bottom: 24,
+              bottom: 110,
               child: CoachMark(
                 id: 'counter_minus',
                 message: "Bittaga kamaytirish",
@@ -165,7 +165,7 @@ class _CounterScreenState extends State<CounterScreen> {
             ),
             Positioned(
               right: 24,
-              bottom: 24,
+              bottom: 110,
               child: CoachMark(
                 id: 'counter_plus',
                 message: "Bittaga ko'paytirish (sanash)",

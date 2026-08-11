@@ -207,6 +207,51 @@ class NotificationService {
     );
   }
 
+  /// Schedules a daily-repeating reminder for one medicine dose time
+  /// (e.g. "09:00 every day"). [medicineNotificationId] should be a
+  /// unique id per (medicine, dose-slot) pair so multiple doses don't
+  /// overwrite each other.
+  Future<void> scheduleMedicineReminder({
+    required int medicineNotificationId,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'focus_life_tasks',
+        'Vazifa eslatmalari',
+        channelDescription: 'Rejalashtirilgan vazifalar, uyqu va odatlar uchun eslatmalar',
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _plugin.zonedSchedule(
+      700000 + medicineNotificationId,
+      title,
+      body,
+      scheduled,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  Future<void> cancelMedicineReminder(int medicineNotificationId) =>
+      _plugin.cancel(700000 + medicineNotificationId);
+
   Future<void> cancelAll() => _plugin.cancelAll();
 
   /// Fired by the analytics engine when distracting-app time exceeds

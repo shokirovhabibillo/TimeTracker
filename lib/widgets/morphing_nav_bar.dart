@@ -105,7 +105,9 @@ class MorphingNavBar extends StatelessWidget {
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            color: isGlass ? Colors.black.withOpacity(isLiquid ? 0.3 : 0.22) : scheme.surfaceContainerHighest.withOpacity(0.32),
+            color: isGlass
+                ? Colors.black.withOpacity(isLiquid ? 0.3 : 0.22)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(28),
             border: isGlass ? Border.all(color: Colors.white.withOpacity(isLiquid ? 0.22 : 0.14), width: 0.7) : null,
           ),
@@ -144,7 +146,7 @@ class MorphingNavBar extends StatelessWidget {
         boxShadow: [
           if (isLiquid)
             BoxShadow(color: scheme.primary.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))
-          else
+          else if (isGlass)
             BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),

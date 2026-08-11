@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 18,
+      version: 19,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -189,6 +189,29 @@ class DatabaseHelper {
       await db.execute(
           "ALTER TABLE users_settings ADD COLUMN visualization_mode TEXT NOT NULL DEFAULT 'smartphone'");
     }
+    if (oldVersion < 19) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS medicines (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          dosage TEXT NOT NULL,
+          times TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          end_date TEXT,
+          notes TEXT NOT NULL DEFAULT ''
+        );
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS dose_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          medicine_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          time TEXT NOT NULL,
+          taken INTEGER NOT NULL DEFAULT 0,
+          UNIQUE(medicine_id, date, time)
+        );
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -333,6 +356,29 @@ class DatabaseHelper {
         activity_type TEXT NOT NULL,
         seconds INTEGER NOT NULL DEFAULT 0,
         UNIQUE(date, activity_type)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE medicines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        dosage TEXT NOT NULL,
+        times TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT,
+        notes TEXT NOT NULL DEFAULT ''
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE dose_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        medicine_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        time TEXT NOT NULL,
+        taken INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(medicine_id, date, time)
       );
     ''');
 
