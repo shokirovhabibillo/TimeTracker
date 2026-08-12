@@ -87,6 +87,12 @@ class MorphingNavBar extends StatelessWidget {
                       child: Icon(
                         selected ? item.selectedIcon : item.icon,
                         color: selected ? scheme.onPrimary : scheme.onSurface.withOpacity(0.6),
+                        shadows: isGlass
+                            ? null
+                            : [
+                                Shadow(color: Colors.black.withOpacity(0.55), blurRadius: 6),
+                                Shadow(color: Colors.white.withOpacity(0.35), blurRadius: 3),
+                              ],
                       ),
                     ),
                   ),

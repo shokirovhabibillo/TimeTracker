@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/models/task_model.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/mini_calendar.dart';
 import '../../widgets/coach_mark.dart';
@@ -24,12 +25,27 @@ class PlannerScreen extends StatefulWidget {
 }
 
 class _PlannerScreenState extends State<PlannerScreen> {
+  List<String> _medicineReminders = [];
+  List<String> _projectDeadlines = [];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().loadTasksForSelectedDay();
+      _loadCrossSystemReminders();
     });
+  }
+
+  Future<void> _loadCrossSystemReminders() async {
+    final deviceId = context.read<SettingsProvider>().settings.deviceId;
+    final result = await context.read<TaskProvider>().loadTodayCrossSystemReminders(deviceId);
+    if (mounted) {
+      setState(() {
+        _medicineReminders = result.medicineTimes;
+        _projectDeadlines = result.projectDeadlines;
+      });
+    }
   }
 
   void _openAddTask(BuildContext context, {String? category}) {
@@ -133,6 +149,38 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ),
           const SizedBox(height: 8),
+          if (_medicineReminders.isNotEmpty || _projectDeadlines.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: theme.colorScheme.tertiary.withOpacity(0.35)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_medicineReminders.isNotEmpty)
+                      Row(children: [
+                        const Icon(Icons.medication, size: 14),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text('Dori: ${_medicineReminders.join(", ")}', style: const TextStyle(fontSize: 12))),
+                      ]),
+                    if (_medicineReminders.isNotEmpty && _projectDeadlines.isNotEmpty) const SizedBox(height: 4),
+                    if (_projectDeadlines.isNotEmpty)
+                      Row(children: [
+                        const Icon(Icons.dashboard, size: 14),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text('Bugun tugaydi: ${_projectDeadlines.join(", ")}', style: const TextStyle(fontSize: 12))),
+                      ]),
+                  ],
+                ),
+              ),
+            ),
           if (taskProvider.freeGaps.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

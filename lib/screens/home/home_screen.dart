@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
+import '../../widgets/liquid_nav_bar.dart';
 import '../../widgets/morphing_nav_bar.dart';
 import '../../widgets/patterned_background.dart';
 import '../analytics/analytics_screen.dart';
@@ -104,12 +105,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
         final screens = List.generate(5, _screenAt);
 
-        final nav = MorphingNavBar(
-          items: _items,
-          selectedIndex: _index,
-          onSelected: _goToIndex,
-          axis: isLandscape ? Axis.vertical : Axis.horizontal,
-        );
+        final nav = isLandscape
+            ? MorphingNavBar(
+                items: _items,
+                selectedIndex: _index,
+                onSelected: _goToIndex,
+                axis: Axis.vertical,
+              )
+            : LiquidNavBar(
+                items: _items,
+                selectedIndex: _index,
+                onSelected: _goToIndex,
+              );
 
         final pageView = PageView(
           controller: _pageController,
@@ -134,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : Stack(
                     children: [
                       Positioned.fill(child: pageView),
-                      Positioned(left: 0, right: 0, bottom: 0, child: nav),
+                      Positioned(left: 0, right: 0, bottom: 0, child: Center(child: nav)),
                     ],
                   ),
           ),

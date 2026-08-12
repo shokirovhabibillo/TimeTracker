@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../config/supabase_config.dart';
+import '../data/models/medicine_model.dart';
+import '../data/models/project_model.dart';
 import '../data/models/task_model.dart';
+import '../data/repositories/medicine_repository.dart';
 import '../data/repositories/task_repository.dart';
 import '../services/notification_service.dart';
+import '../services/project_service.dart';
 import '../utils/schedule_utils.dart';
 
 class TaskProvider extends ChangeNotifier {
@@ -26,6 +31,46 @@ class TaskProvider extends ChangeNotifier {
     if (_tasksForDay.isEmpty) return 0;
     final completed = _tasksForDay.where((t) => t.isCompleted).length;
     return completed / _tasksForDay.length;
+  }
+
+  /// Today's cross-system reminders — unfinished medicine doses and any
+  /// project-task deadlines landing today — so the Reja screen isn't
+  /// blind to what's happening in the Medicine and Project modules.
+  Future<({List<String> medicineTimes, List<String> projectDeadlines})> loadTodayCrossSystemReminders(
+      String deviceId) async {
+    final medicineRepo = MedicineRepository();
+    final today = DateTime.now();
+    final activeMeds = await medicineRepo.getActiveMedicinesForDay(today);
+    final takenKeys = await medicineRepo.getTakenDoseKeys(today);
+    final medicineTimes = <String>[];
+    for (final m in activeMeds) {
+      for (final t in m.times) {
+        if (!takenKeys.contains('${m.id}_$t')) medicineTimes.add('${m.name} ($t)');
+      }
+    }
+    medicineTimes.sort();
+
+    final projectDeadlines = <String>[];
+    if (SupabaseConfig.isConfigured && deviceId.isNotEmpty) {
+      try {
+        final projects = await ProjectService.instance.getMyProjects(deviceId);
+        for (final p in projects) {
+          final tasks = await ProjectService.instance.getTasks(p.id);
+          for (final t in tasks) {
+            if (t.status != ProjectTaskStatus.done &&
+                t.deadline != null &&
+                t.deadline!.year == today.year &&
+                t.deadline!.month == today.month &&
+                t.deadline!.day == today.day) {
+              projectDeadlines.add('${p.name}: ${t.title}');
+            }
+          }
+        }
+      } catch (_) {
+        // Offline or Supabase unreachable — just skip, not critical.
+      }
+    }
+    return (medicineTimes: medicineTimes, projectDeadlines: projectDeadlines);
   }
 
   /// Idle windows of 60+ minutes between consecutive scheduled tasks —

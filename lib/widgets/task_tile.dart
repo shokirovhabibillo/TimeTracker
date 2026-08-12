@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/models/task_model.dart';
+import 'crumple_to_trash_tile.dart';
 
-class TaskTile extends StatelessWidget {
+class TaskTile extends StatefulWidget {
   final TaskModel task;
   final VoidCallback onTap;
   final ValueChanged<String> onSetStatus;
@@ -16,6 +17,16 @@ class TaskTile extends StatelessWidget {
     required this.onSetStatus,
     required this.onDelete,
   });
+
+  @override
+  State<TaskTile> createState() => _TaskTileState();
+}
+
+class _TaskTileState extends State<TaskTile> {
+  CrumpleToTrashController? _crumpleController;
+  bool _collapsed = false;
+
+  TaskModel get task => widget.task;
 
   Color get _color {
     final hex = task.colorCode.replaceAll('#', '');
@@ -57,12 +68,20 @@ class TaskTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (_collapsed) {
+      return const AnimatedPadding(
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.zero,
+        child: SizedBox(height: 0, width: double.infinity),
+      );
+    }
+
     final timeFmt = DateFormat('HH:mm');
     final futureDay = _isFutureDay;
-    return Card(
+    final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
-        onTap: onTap,
+        onTap: widget.onTap,
         contentPadding: const EdgeInsets.only(left: 8, right: 2),
         minLeadingWidth: 10,
         horizontalTitleGap: 8,
@@ -81,7 +100,7 @@ class TaskTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          '${TaskCategory.label(task.category)} · ${timeFmt.format(task.startTime)}–${timeFmt.format(task.endTime)}'
+          '${TaskCategory.label(task.category)} · ${timeFmt.format(task.startTime)}\u2013${timeFmt.format(task.endTime)}'
           '${task.isRecurring ? " · ${task.recurrenceRule}" : ""}'
           '${task.completionStatus == 'postponed' ? " · Keyinga qoldirilgan" : ""}',
         ),
@@ -98,7 +117,7 @@ class TaskTile extends StatelessWidget {
                     icon: Icon(_statusIcon, size: 22, color: _statusColor(context)),
                     tooltip: 'Bajarilish holati',
                     padding: EdgeInsets.zero,
-                    onSelected: onSetStatus,
+                    onSelected: widget.onSetStatus,
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'on_time', child: Text('Vaqtida bajardi')),
                       const PopupMenuItem(value: 'late', child: Text('Kechroq bajardim')),
@@ -117,6 +136,43 @@ class TaskTile extends StatelessWidget {
         ),
       ),
     );
+
+    return CrumpleToTrashTile(
+      onControllerReady: (c) => _crumpleController = c,
+      onFinished: _onFlightFinished,
+      child: card,
+    );
+  }
+
+  void _onFlightFinished() {
+    if (!mounted) return;
+    setState(() => _collapsed = true);
+    _showUndoSnackBar();
+  }
+
+  void _showUndoSnackBar() {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    var undone = false;
+    messenger
+        .showSnackBar(
+          SnackBar(
+            content: const Text("O'chirildi"),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Bekor qilish',
+              onPressed: () {
+                undone = true;
+                if (mounted) setState(() => _collapsed = false);
+                _crumpleController?.undo();
+              },
+            ),
+          ),
+        )
+        .closed
+        .then((_) async {
+      if (!undone) await widget.onDelete();
+    });
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -131,6 +187,6 @@ class TaskTile extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed == true) await onDelete();
+    if (confirmed == true) _crumpleController?.trigger();
   }
 }

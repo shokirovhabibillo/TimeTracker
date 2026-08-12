@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,6 +22,21 @@ Future<void> main() async {
     await Supabase.initialize(url: SupabaseConfig.url, anonKey: SupabaseConfig.anonKey);
     FamilySyncScheduler.instance.start();
   }
+
+  // Draw the app's content behind the Android system navigation bar
+  // (Back/Home/Recent area) too, and make that system bar itself
+  // transparent, so the app's real background/content shows through
+  // there as well — matching the transparent in-app nav bar above it.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarColor: Colors.transparent,
+    ),
+  );
+
   runApp(const FocusLifeTrackerApp());
 }
 

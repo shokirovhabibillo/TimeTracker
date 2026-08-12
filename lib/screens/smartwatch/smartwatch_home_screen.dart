@@ -7,10 +7,12 @@ import '../bodybuilding/trapezius_home_screen.dart';
 import '../counter/counter_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../family/family_home_screen.dart';
+import '../games/games_hub_screen.dart';
 import '../focus/focus_mode_screen.dart';
 import '../idp/idp_list_screen.dart';
 import '../medicine/medication_home_screen.dart';
 import '../news/news_contact_screen.dart';
+import '../projects/project_list_screen.dart';
 import '../planner/planner_screen.dart';
 import '../reading/reading_home_screen.dart';
 import '../settings/settings_screen.dart';
@@ -49,6 +51,8 @@ class SmartwatchHomeScreen extends StatelessWidget {
     (icon: Icons.family_restroom, label: 'Ota-ona/Farzand', color: Color(0xFFD946EF), builder: _familyBuilder),
     (icon: Icons.campaign, label: 'Yangiliklar', color: Color(0xFF78716C), builder: _newsBuilder),
     (icon: Icons.medication, label: 'Dori qabul qilish', color: Color(0xFF16A34A), builder: _medicationBuilder),
+    (icon: Icons.dashboard, label: 'Loyihalar', color: Color(0xFF2563EB), builder: _projectsBuilder),
+    (icon: Icons.videogame_asset, label: "Kunlik o'yinlar", color: Color(0xFFF59E0B), builder: _gamesBuilder),
   ];
 
   static Widget _plannerBuilder(BuildContext c) => const PlannerScreen();
@@ -71,6 +75,8 @@ class SmartwatchHomeScreen extends StatelessWidget {
   static Widget _familyBuilder(BuildContext c) => const FamilyHomeScreen();
   static Widget _newsBuilder(BuildContext c) => const NewsContactScreen();
   static Widget _medicationBuilder(BuildContext c) => const MedicationHomeScreen();
+  static Widget _projectsBuilder(BuildContext c) => const ProjectListScreen();
+  static Widget _gamesBuilder(BuildContext c) => const GamesHubScreen();
 
   @override
   Widget build(BuildContext context) {

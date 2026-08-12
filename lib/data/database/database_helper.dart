@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 19,
+      version: 20,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -212,6 +212,19 @@ class DatabaseHelper {
         );
       ''');
     }
+    if (oldVersion < 20) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS daily_game_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          game_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          session_start_at TEXT NOT NULL,
+          completed_at TEXT,
+          score INTEGER NOT NULL DEFAULT 0,
+          UNIQUE(game_id, date)
+        );
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -379,6 +392,18 @@ class DatabaseHelper {
         time TEXT NOT NULL,
         taken INTEGER NOT NULL DEFAULT 0,
         UNIQUE(medicine_id, date, time)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE daily_game_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        session_start_at TEXT NOT NULL,
+        completed_at TEXT,
+        score INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(game_id, date)
       );
     ''');
 

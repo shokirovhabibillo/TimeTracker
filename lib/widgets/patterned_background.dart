@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-enum BackgroundPatternType { none, asian, middleEastern, european, western, highTech }
+enum BackgroundPatternType { none, asian, middleEastern, european, western, highTech, layered3D }
 
 extension BackgroundPatternLabel on BackgroundPatternType {
   String get label {
@@ -18,27 +18,51 @@ extension BackgroundPatternLabel on BackgroundPatternType {
         return "G'arb (minimalist)";
       case BackgroundPatternType.highTech:
         return 'Zamonaviy High-Tech';
+      case BackgroundPatternType.layered3D:
+        return '3D qatlamli (premium)';
     }
   }
 }
 
 /// Wraps [child] with a subtle, low-opacity tiled decorative pattern
 /// behind it — purely cosmetic, never interferes with readability.
-class PatternedBackground extends StatelessWidget {
+class PatternedBackground extends StatefulWidget {
   final BackgroundPatternType pattern;
   final Widget child;
   const PatternedBackground({super.key, required this.pattern, required this.child});
 
   @override
+  State<PatternedBackground> createState() => _PatternedBackgroundState();
+}
+
+class _PatternedBackgroundState extends State<PatternedBackground> with SingleTickerProviderStateMixin {
+  late final AnimationController _drift =
+      AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+
+  @override
+  void dispose() {
+    _drift.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (pattern == BackgroundPatternType.none) return child;
+    if (widget.pattern == BackgroundPatternType.none) return widget.child;
     final color = Theme.of(context).colorScheme.onSurface;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(painter: _PatternPainter(pattern: pattern, color: color)),
+          child: widget.pattern == BackgroundPatternType.layered3D && !reduceMotion
+              ? AnimatedBuilder(
+                  animation: _drift,
+                  builder: (context, _) =>
+                      CustomPaint(painter: _PatternPainter(pattern: widget.pattern, color: color, driftT: _drift.value)),
+                )
+              : CustomPaint(painter: _PatternPainter(pattern: widget.pattern, color: color, driftT: 0)),
         ),
-        child,
+        widget.child,
       ],
     );
   }
@@ -47,7 +71,8 @@ class PatternedBackground extends StatelessWidget {
 class _PatternPainter extends CustomPainter {
   final BackgroundPatternType pattern;
   final Color color;
-  _PatternPainter({required this.pattern, required this.color});
+  final double driftT;
+  _PatternPainter({required this.pattern, required this.color, this.driftT = 0});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -71,6 +96,9 @@ class _PatternPainter extends CustomPainter {
         break;
       case BackgroundPatternType.highTech:
         _paintCircuit(canvas, size, paint);
+        break;
+      case BackgroundPatternType.layered3D:
+        _paintLayered3D(canvas, size);
         break;
       case BackgroundPatternType.none:
         break;
@@ -160,7 +188,50 @@ class _PatternPainter extends CustomPainter {
     }
   }
 
+  // Large soft diagonal panels at varying "depth" — nearer panels are
+  // bigger/brighter, farther ones smaller/dimmer, evoking a coverflow-like
+  // layered perspective without literally being a card carousel. A very
+  // slow drift (driftT, 0..1 looping) gives an almost-imperceptible
+  // parallax feel; callers pass driftT=0 for Reduced Motion.
+  void _paintLayered3D(Canvas canvas, Size size) {
+    final cx = size.width * 0.5;
+    final cy = size.height * 0.42;
+    final driftShift = sin(driftT * 2 * pi) * 14; // px, barely noticeable
+
+    const layers = 5;
+    for (int i = 0; i < layers; i++) {
+      final depth = i / (layers - 1); // 0 = nearest, 1 = farthest
+      final scale = 1.0 - depth * 0.55;
+      final opacity = 0.05 * (1 - depth * 0.7);
+      final dx = driftShift * (1 - depth) * 0.6 + (i.isEven ? -1 : 1) * depth * 40;
+      final dy = -depth * 90;
+      final w = size.width * 0.95 * scale;
+      final h = size.height * 0.5 * scale;
+
+      final rect = Rect.fromCenter(center: Offset(cx + dx, cy + dy), width: w, height: h);
+      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(36 * scale));
+
+      canvas.save();
+      canvas.translate(rect.center.dx, rect.center.dy);
+      // Slight perspective skew — panels "tilt" a little more the farther back they are.
+      final skew = 0.08 * depth * (i.isEven ? 1 : -1);
+      canvas.transform(Matrix4.skewX(skew).storage);
+      canvas.translate(-rect.center.dx, -rect.center.dy);
+
+      canvas.drawRRect(rrect, Paint()..color = color.withOpacity(opacity));
+      // Soft top-edge highlight to sell the "glass panel" depth cue.
+      canvas.drawRRect(
+        rrect,
+        Paint()
+          ..color = color.withOpacity(opacity * 1.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+      canvas.restore();
+    }
+  }
+
   @override
   bool shouldRepaint(covariant _PatternPainter oldDelegate) =>
-      oldDelegate.pattern != pattern || oldDelegate.color != color;
+      oldDelegate.pattern != pattern || oldDelegate.color != color || oldDelegate.driftT != driftT;
 }
