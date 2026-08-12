@@ -201,6 +201,15 @@ class _StepHomeScreenState extends State<StepHomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
+          if (_log != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                "Texnik: xom o'qish=${_log!.lastReading}, bugungi asos=${_log!.midnightBaseline}, farqi=${_log!.todaySteps}",
+                style: const TextStyle(fontSize: 10, color: Colors.white30),
+              ),
+            ),
+          const SizedBox(height: 8),
           const Text(
             "Velosiped/avtomobil masofasi — GPS ishlatilmagani uchun o'rtacha tezlik "
             "asosida taxminiy hisoblanadi. Piyoda masofasi qadam soniga asoslanib aniq hisoblanadi.",

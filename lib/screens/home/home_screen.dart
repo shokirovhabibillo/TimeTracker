@@ -121,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         return Scaffold(
+          extendBody: true,
           body: PatternedBackground(
             pattern: pattern,
             child: isLandscape
@@ -130,10 +131,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(child: pageView),
                     ],
                   )
-                : Column(
+                : Stack(
                     children: [
-                      Expanded(child: pageView),
-                      nav,
+                      Positioned.fill(child: pageView),
+                      Positioned(left: 0, right: 0, bottom: 0, child: nav),
                     ],
                   ),
           ),
