@@ -69,10 +69,10 @@ class _TaskTileState extends State<TaskTile> {
   @override
   Widget build(BuildContext context) {
     if (_collapsed) {
-      return const AnimatedPadding(
-        duration: Duration(milliseconds: 200),
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.zero,
-        child: SizedBox(height: 0, width: double.infinity),
+        child: const SizedBox(height: 0, width: double.infinity),
       );
     }
 

@@ -4,20 +4,23 @@
     <!-- Fetching remote admin content: announcements, other apps, contact info -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- QR scanning — importing a shared day-plan/lesson plan -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- Step counting -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
+
+    <!-- Route/shape tracking during a walk session -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
     <!-- Local notifications for scheduled tasks / habits / focus warnings -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-<!-- QR skanerlash uchun -->
-<uses-permission android:name="android.permission.CAMERA"/>
 
-<!-- Qadam sanash uchun -->
-<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
-<uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
-<!-- Yurish shaklini (GPS) kuzatish uchun -->
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- Keep-screen-on in Focus Mode -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
