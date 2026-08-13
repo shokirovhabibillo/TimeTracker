@@ -139,8 +139,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               style: Theme.of(context).textTheme.titleSmall),
                           Text(
                             "O'tgan kunlarda bajarilmay qolgan vazifalarni "
-                            "\"Bugunga ko'chirish\" tugmasi orqali necha marta "
-                            "ko'chirganingiz (barcha vaqt bo'yicha jami).",
+                            "\"Bugunga ko'chirish\" orqali necha marta ko'chirganingiz "
+                            "(barcha vaqt bo'yicha jami). Tugmaning o'zi faqat hozir "
+                            "bajarilmagan, o'tgan kundan qolgan vazifa bo'lsa, shu ekranda "
+                            "pastroqda ko'rinadi.",
                             style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
                           ),
                         ],
