@@ -157,6 +157,37 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
 
     final provider = context.read<TaskProvider>();
+
+    // Passenger-transport time is intentionally allowed to overlap
+    // (that's the whole point — reading/study during a commute), so
+    // skip the warning in that case, and skip it for the task being
+    // edited itself.
+    if (!task.isPassengerTransport) {
+      final conflicts = provider.tasksForDay.where((t) =>
+          t.id != task.id &&
+          !t.isPassengerTransport &&
+          t.startTime.isBefore(task.endTime) &&
+          t.endTime.isAfter(task.startTime));
+      if (conflicts.isNotEmpty && mounted) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Vaqt to'qnashuvi"),
+            content: Text(
+              "Bu vaqt oralig'i quyidagilar bilan mos kelmoqda:\n\n"
+              "${conflicts.map((t) => '• ${t.title}').join('\n')}\n\n"
+              "Baribir saqlaysizmi?",
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Vaqtni o\'zgartiraman')),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Baribir saqlash')),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+      }
+    }
+
     if (widget.existing == null) {
       await provider.addTask(task);
     } else {
