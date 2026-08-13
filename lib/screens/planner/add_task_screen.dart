@@ -15,6 +15,7 @@ const Map<String, String> _categoryDefaultColors = {
   TaskCategory.privilegedLeave: '#A855F7',
   TaskCategory.annualLeave: '#10B981',
   TaskCategory.idpDevelopment: '#F97316',
+  TaskCategory.transport: '#0891B2',
   TaskCategory.custom: '#FF0055',
 };
 
@@ -41,6 +42,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   late int _notificationOffset;
   String? _durationUnit; // null = "Doim" (forever); else 'day'|'week'|'month'|'year'
   int _durationCount = 1;
+  bool _isPassengerTransport = false;
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final e = widget.existing;
     _titleController = TextEditingController(text: e?.title ?? widget.initialTitle ?? '');
     _category = e?.category ?? widget.initialCategory ?? TaskCategory.work;
+    _isPassengerTransport = e?.isPassengerTransport ?? false;
     _start = e?.startTime ??
         DateTime(widget.initialDay.year, widget.initialDay.month,
             widget.initialDay.day, 9);
@@ -140,6 +143,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       id: widget.existing?.id,
       title: _titleController.text.trim(),
       category: _category,
+      isPassengerTransport: _category == TaskCategory.transport && _isPassengerTransport,
       colorCode: widget.existing?.colorCode ??
           _categoryDefaultColors[_category] ??
           '#00F0FF',
@@ -193,6 +197,20 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   .toList(),
               onChanged: (v) => setState(() => _category = v!),
             ),
+            if (_category == TaskCategory.transport) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Yo'lovchiman (haydovchi emasman)"),
+                subtitle: const Text(
+                  "Yoqilsa, bu vaqt bo'sh vaqt hisobida ham ko'rsatiladi — yo'lda "
+                  "o'qish, kitob o'qish yoki audio-dars tinglash uchun taklif qilinadi.",
+                  style: TextStyle(fontSize: 11),
+                ),
+                value: _isPassengerTransport,
+                onChanged: (v) => setState(() => _isPassengerTransport = v),
+              ),
+            ],
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
