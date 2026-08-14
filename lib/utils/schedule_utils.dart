@@ -12,12 +12,8 @@ class TimeGap {
 /// 60+ minutes between what's left — the "bo'sh vaqtlar" shown in the
 /// Planner and used to suggest IDP scheduling slots.
 List<TimeGap> computeFreeGaps(List<TaskModel> tasks) {
-  // Passenger-mode transport time isn't "busy" in the usual sense — the
-  // user explicitly said they're not driving, so it's available for
-  // reading/study/audio lessons and should still show up as free time.
-  final busyTasks = tasks.where((t) => !t.isPassengerTransport).toList();
-  if (busyTasks.length < 2) return [];
-  final sorted = [...busyTasks]..sort((a, b) => a.startTime.compareTo(b.startTime));
+  if (tasks.length < 2) return [];
+  final sorted = [...tasks]..sort((a, b) => a.startTime.compareTo(b.startTime));
 
   final busy = <TimeGap>[];
   for (final t in sorted) {

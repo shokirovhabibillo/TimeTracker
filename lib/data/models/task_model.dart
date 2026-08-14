@@ -12,12 +12,11 @@ class TaskCategory {
   static const privilegedLeave = 'privileged_leave';
   static const annualLeave = 'annual_leave';
   static const idpDevelopment = 'idp_development';
-  static const transport = 'transport';
 
   static const all = [
     work, study, meal, sleep, habit,
     laborLeave, privilegedLeave, annualLeave,
-    idpDevelopment, transport,
+    idpDevelopment,
     custom,
   ];
 
@@ -41,8 +40,6 @@ class TaskCategory {
         return 'Yillik ta\'til (staj)';
       case idpDevelopment:
         return 'Rivojlanish rejasi (IDP)';
-      case transport:
-        return 'Transport / Yo\'lda';
       default:
         return 'Boshqa';
     }
@@ -63,7 +60,6 @@ class TaskModel {
   final int rolledOverCount;
   final String? completionStatus; // 'on_time' | 'late' | 'postponed'
   final DateTime? recurrenceEndDate;
-  final bool isPassengerTransport; // Transport category: true = riding as a passenger (free to do other things)
 
   TaskModel({
     this.id,
@@ -79,7 +75,6 @@ class TaskModel {
     this.rolledOverCount = 0,
     this.completionStatus,
     this.recurrenceEndDate,
-    this.isPassengerTransport = false,
   });
 
   int get durationMinutes => endTime.difference(startTime).inMinutes;
@@ -99,7 +94,6 @@ class TaskModel {
     String? completionStatus,
     DateTime? recurrenceEndDate,
     bool clearRecurrenceEndDate = false,
-    bool? isPassengerTransport,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -116,7 +110,6 @@ class TaskModel {
       completionStatus: completionStatus ?? this.completionStatus,
       recurrenceEndDate:
           clearRecurrenceEndDate ? null : (recurrenceEndDate ?? this.recurrenceEndDate),
-      isPassengerTransport: isPassengerTransport ?? this.isPassengerTransport,
     );
   }
 
@@ -136,7 +129,6 @@ class TaskModel {
       'rolled_over_count': rolledOverCount,
       'completion_status': completionStatus,
       'recurrence_end_date': recurrenceEndDate?.toIso8601String(),
-      'is_passenger_transport': isPassengerTransport ? 1 : 0,
     };
   }
 
@@ -157,7 +149,6 @@ class TaskModel {
       recurrenceEndDate: map['recurrence_end_date'] != null
           ? DateTime.parse(map['recurrence_end_date'] as String)
           : null,
-      isPassengerTransport: (map['is_passenger_transport'] as int? ?? 0) == 1,
     );
   }
 }

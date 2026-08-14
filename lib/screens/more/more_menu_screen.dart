@@ -42,7 +42,7 @@ class MoreMenuScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Boshqa bo\'limlar')),
       body: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,

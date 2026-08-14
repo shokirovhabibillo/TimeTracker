@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -156,24 +154,23 @@ class _TaskTileState extends State<TaskTile> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     var undone = false;
-    messenger.showSnackBar(
-      SnackBar(
-        content: const Text("O'chirildi"),
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Bekor qilish',
-          onPressed: () {
-            undone = true;
-            if (mounted) setState(() => _collapsed = false);
-            _crumpleController?.undo();
-          },
-        ),
-      ),
-    );
-    // Explicit timer instead of relying on SnackBar's .closed future —
-    // that future can resolve early/unpredictably if another snackbar
-    // interrupts this one, which was leaving deletions stuck pending.
-    Timer(const Duration(seconds: 4, milliseconds: 200), () async {
+    messenger
+        .showSnackBar(
+          SnackBar(
+            content: const Text("O'chirildi"),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Bekor qilish',
+              onPressed: () {
+                undone = true;
+                if (mounted) setState(() => _collapsed = false);
+                _crumpleController?.undo();
+              },
+            ),
+          ),
+        )
+        .closed
+        .then((_) async {
       if (!undone) await widget.onDelete();
     });
   }
