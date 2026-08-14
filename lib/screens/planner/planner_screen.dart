@@ -13,6 +13,7 @@ import '../../widgets/progress_bar.dart';
 import '../../widgets/striped_percentage_ring.dart';
 import '../../widgets/radial_quick_add.dart';
 import '../../widgets/task_tile.dart';
+import '../medicine/medication_home_screen.dart';
 import 'add_task_screen.dart';
 import 'qr_export_screen.dart';
 import 'qr_import_screen.dart';
@@ -165,11 +166,17 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_medicineReminders.isNotEmpty)
-                      Row(children: [
-                        const Icon(Icons.medication, size: 14),
-                        const SizedBox(width: 6),
-                        Expanded(child: Text('Dori: ${_medicineReminders.join(", ")}', style: const TextStyle(fontSize: 12))),
-                      ]),
+                      InkWell(
+                        onTap: () => Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (_) => const MedicationHomeScreen()))
+                            .then((_) => _loadCrossSystemReminders()),
+                        child: Row(children: [
+                          const Icon(Icons.medication, size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text('Dori: ${_medicineReminders.join(", ")}', style: const TextStyle(fontSize: 12))),
+                          const Icon(Icons.chevron_right, size: 14),
+                        ]),
+                      ),
                     if (_medicineReminders.isNotEmpty && _projectDeadlines.isNotEmpty) const SizedBox(height: 4),
                     if (_projectDeadlines.isNotEmpty)
                       Row(children: [
@@ -210,8 +217,18 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       final h = g.duration.inMinutes ~/ 60;
                       final m = g.duration.inMinutes % 60;
                       final durationText = h > 0 ? '${h} soat${m > 0 ? ' $m daq' : ''}' : '$m daqiqa';
-                      return Text('${fmt.format(g.start)}–${fmt.format(g.end)} ($durationText)',
-                          style: const TextStyle(fontSize: 12));
+                      final isTransportWindow = taskProvider.tasksForDay.any((t) =>
+                          t.isPassengerTransport &&
+                          t.startTime.isBefore(g.end) &&
+                          t.endTime.isAfter(g.start));
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          '${fmt.format(g.start)}–${fmt.format(g.end)} ($durationText)'
+                          '${isTransportWindow ? " — yo'lda, o'qish/tinglash uchun mos" : ""}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      );
                     }),
                   ],
                 ),

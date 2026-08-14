@@ -24,18 +24,11 @@ Future<void> main() async {
   }
 
   // Draw the app's content behind the Android system navigation bar
-  // (Back/Home/Recent area) too, and make that system bar itself
-  // transparent, so the app's real background/content shows through
-  // there as well — matching the transparent in-app nav bar above it.
+  // (Back/Home/Recent area) too, so the app's real background shows
+  // through there — the actual icon/bar colors are set reactively
+  // below (AnnotatedRegion), based on the active theme's brightness,
+  // so they stay legible regardless of which theme/background is chosen.
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.dark,
-      statusBarColor: Colors.transparent,
-    ),
-  );
 
   runApp(const FocusLifeTrackerApp());
 }
@@ -54,21 +47,32 @@ class FocusLifeTrackerApp extends StatelessWidget {
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
-          return MaterialApp(
-            title: 'Focus & Life Tracker',
-            debugShowCheckedModeBanner: false,
-            theme: settings.themeData,
-            builder: (context, child) {
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(settings.settings.fontScale),
-                ),
-                child: child!,
-              );
-            },
-            home: settings.isLoading
-                ? const _SplashScreen()
-                : const HomeScreen(),
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness:
+                  settings.themeData.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarDividerColor: Colors.transparent,
+              systemNavigationBarIconBrightness:
+                  settings.themeData.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+            ),
+            child: MaterialApp(
+              title: 'Focus & Life Tracker',
+              debugShowCheckedModeBanner: false,
+              theme: settings.themeData,
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(settings.settings.fontScale),
+                  ),
+                  child: child!,
+                );
+              },
+              home: settings.isLoading
+                  ? const _SplashScreen()
+                  : const HomeScreen(),
+            ),
           );
         },
       ),

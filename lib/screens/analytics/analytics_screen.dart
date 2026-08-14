@@ -126,13 +126,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: _BentoCard(
-                title: 'Kechiktirilgan vazifalar',
+                title: "Keyingi kunga ko'chirilgan vazifalar",
                 child: Row(
                   children: [
                     Icon(Icons.history_toggle_off, color: scheme.secondary),
                     const SizedBox(width: 10),
-                    Text('$_rolloverCount marta ko\'chirilgan',
-                        style: Theme.of(context).textTheme.titleSmall),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Jami $_rolloverCount marta',
+                              style: Theme.of(context).textTheme.titleSmall),
+                          Text(
+                            "O'tgan kunlarda bajarilmay qolgan vazifalarni "
+                            "\"Bugunga ko'chirish\" orqali necha marta ko'chirganingiz "
+                            "(barcha vaqt bo'yicha jami). Tugmaning o'zi faqat hozir "
+                            "bajarilmagan, o'tgan kundan qolgan vazifa bo'lsa, shu ekranda "
+                            "pastroqda ko'rinadi.",
+                            style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -148,12 +163,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           final columns =
                               constraints.maxWidth > 700 ? 3 : (constraints.maxWidth > 420 ? 2 : 1);
                           return GridView(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: columns,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 1.3,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 1.75,
                             ),
                             children: [
                               _BentoCard(
@@ -215,15 +230,15 @@ class _BentoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Expanded(child: child),
           ],
         ),

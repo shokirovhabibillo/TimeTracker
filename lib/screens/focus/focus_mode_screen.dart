@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/models/task_model.dart';
+import '../../data/repositories/medicine_repository.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
@@ -36,6 +39,8 @@ class FocusModeScreen extends StatefulWidget {
 class _FocusModeScreenState extends State<FocusModeScreen> {
   bool _keepScreenOn = false;
   String? _playingTrack;
+  String? _dueMedicine;
+  Timer? _medicineCheckTimer;
 
   @override
   void initState() {
@@ -43,10 +48,32 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().refreshActiveTask();
     });
+    _checkDueMedicine();
+    _medicineCheckTimer = Timer.periodic(const Duration(minutes: 1), (_) => _checkDueMedicine());
+  }
+
+  Future<void> _checkDueMedicine() async {
+    final repository = MedicineRepository();
+    final now = DateTime.now();
+    final meds = await repository.getActiveMedicinesForDay(now);
+    final takenKeys = await repository.getTakenDoseKeys(now);
+    String? due;
+    for (final m in meds) {
+      for (final t in m.times) {
+        final parts = t.split(':');
+        final doseMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
+        final nowMinutes = now.hour * 60 + now.minute;
+        if (!takenKeys.contains('${m.id}_$t') && (nowMinutes - doseMinutes).abs() <= 10 && nowMinutes >= doseMinutes) {
+          due = '${m.name} (${m.dosage})';
+        }
+      }
+    }
+    if (mounted) setState(() => _dueMedicine = due);
   }
 
   @override
   void dispose() {
+    _medicineCheckTimer?.cancel();
     if (_keepScreenOn) ScreenWakeService.disable();
     AudioService.instance.stop();
     super.dispose();
@@ -203,6 +230,27 @@ class _FocusModeScreenState extends State<FocusModeScreen> {
           return Column(
             children: [
               _Header(task: activeTask, progress: taskProvider.dayProgress, accent: accent),
+              if (_dueMedicine != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.green.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.medication, size: 16, color: Colors.green),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('Dori vaqti: $_dueMedicine', style: const TextStyle(fontSize: 12))),
+                      ],
+                    ),
+                  ),
+                ),
               Expanded(
                 child: isLandscape
                     ? _LandscapeBody(
@@ -339,7 +387,7 @@ class _PortraitBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       child: Column(
         children: [
           timer,
