@@ -9,6 +9,7 @@ import '../../providers/task_provider.dart';
 import '../../providers/usage_provider.dart';
 import '../../widgets/daily_breakdown_donut.dart';
 import '../../widgets/progress_bar.dart';
+import 'monthly_report_screen.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -67,6 +68,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Card(
+              child: ListTile(
+                leading: Icon(Icons.calendar_month, color: scheme.primary),
+                title: const Text('📅 Oylik ko\'rinish'),
+                subtitle: const Text("Kunlar bo'yicha bajarilish foizi va faollik tahlili"),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MonthlyReportScreen()),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),

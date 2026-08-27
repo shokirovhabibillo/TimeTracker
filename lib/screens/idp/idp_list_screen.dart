@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/idp_model.dart';
 import '../../data/repositories/idp_repository.dart';
+import 'idp_catalog_screen.dart';
 import 'idp_edit_screen.dart';
 
 class IdpListScreen extends StatefulWidget {
@@ -158,6 +159,18 @@ class _IdpListScreenState extends State<IdpListScreen> with SingleTickerProvider
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shaxsiy rivojlanish rejasi (IDP)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'Tayyor katalogdan tanlash',
+            onPressed: () async {
+              final added = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(builder: (_) => const IdpCatalogScreen()),
+              );
+              if (added == true) _load();
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           onTap: (_) => setState(() {}),

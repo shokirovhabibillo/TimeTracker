@@ -70,6 +70,22 @@ class TaskRepository {
   String _dateKey(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  /// Per-day completion summary for a whole month — reuses the same
+  /// day-by-day logic as [getTasksForDay] (so recurrence and per-day
+  /// completion overrides are handled correctly) rather than a
+  /// hand-rolled SQL aggregate that could subtly diverge from it.
+  Future<Map<String, ({int completed, int total})>> getMonthlyCompletionSummary(DateTime month) async {
+    final result = <String, ({int completed, int total})>{};
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    for (int d = 1; d <= daysInMonth; d++) {
+      final day = DateTime(month.year, month.month, d);
+      final tasks = await getTasksForDay(day);
+      final completed = tasks.where((t) => t.isCompleted).length;
+      result[_dateKey(day)] = (completed: completed, total: tasks.length);
+    }
+    return result;
+  }
+
   /// Returns every task that should appear on [day] — both tasks whose
   /// stored `start_time` literally falls on that date, AND recurring
   /// tasks (DAILY / WEEKLY:...) created on an earlier date whose rule
@@ -109,6 +125,7 @@ class TaskRepository {
           rolledOverCount: task.rolledOverCount,
           completionStatus: null,
           recurrenceEndDate: task.recurrenceEndDate,
+          isPassengerTransport: task.isPassengerTransport,
         );
       }
       final row = rows.first;
