@@ -115,6 +115,11 @@ class _PatternPainter extends CustomPainter {
         _paintLayered3D(canvas, size);
         break;
       case BackgroundPatternType.none:
+      case BackgroundPatternType.islamicNavy:
+      case BackgroundPatternType.islamicPastel:
+        // Never actually reached for the two Islamic types — those are
+        // intercepted earlier in build() and rendered via the richer
+        // IslamicBackground widget instead of this simple line-pattern.
         break;
     }
   }
