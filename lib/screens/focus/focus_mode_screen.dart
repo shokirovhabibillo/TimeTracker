@@ -17,6 +17,7 @@ import '../../widgets/progress_bar.dart';
 import '../../widgets/swipeable_style_picker.dart';
 import '../../widgets/timer_display.dart';
 import '../../widgets/motivation_board.dart';
+import '../../widgets/ornate_button.dart';
 
 /// Focus dashboard: header (task + progress), large stopwatch/pomodoro,
 /// clock, interactive calendar with active-task highlighting, keep-screen-on
@@ -666,9 +667,20 @@ class _TimerControls extends StatelessWidget {
           style: TextStyle(fontSize: 11));
     }
 
+    final buttonStyle = context.watch<SettingsProvider>().settings.buttonStyle;
+
     switch (timerProvider.status) {
       case TimerStatus.idle:
       case TimerStatus.finished:
+        if (buttonStyle == 'ornate') {
+          return OrnateButton(
+            label: 'Boshlash',
+            icon: Icons.play_arrow,
+            onPressed: () => timerProvider.start(activeTask!),
+            width: 200,
+            height: 52,
+          );
+        }
         return ElevatedButton.icon(
           onPressed: () => timerProvider.start(activeTask!),
           icon: const Icon(Icons.play_arrow),

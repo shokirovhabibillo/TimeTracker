@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-enum BackgroundPatternType { none, asian, middleEastern, european, western, highTech, layered3D }
+import 'islamic_background.dart';
+
+enum BackgroundPatternType { none, asian, middleEastern, european, western, highTech, layered3D, islamicNavy, islamicPastel }
 
 extension BackgroundPatternLabel on BackgroundPatternType {
   String get label {
@@ -20,6 +22,10 @@ extension BackgroundPatternLabel on BackgroundPatternType {
         return 'Zamonaviy High-Tech';
       case BackgroundPatternType.layered3D:
         return '3D qatlamli (premium)';
+      case BackgroundPatternType.islamicNavy:
+        return "Islomiy (to'q ko'k-tilla)";
+      case BackgroundPatternType.islamicPastel:
+        return 'Islomiy (och, nafis)';
     }
   }
 }
@@ -48,6 +54,14 @@ class _PatternedBackgroundState extends State<PatternedBackground> with SingleTi
   @override
   Widget build(BuildContext context) {
     if (widget.pattern == BackgroundPatternType.none) return widget.child;
+
+    if (widget.pattern == BackgroundPatternType.islamicNavy) {
+      return IslamicBackground(palette: BackgroundPalette.navyGold, child: widget.child);
+    }
+    if (widget.pattern == BackgroundPatternType.islamicPastel) {
+      return IslamicBackground(palette: BackgroundPalette.softPastel, child: widget.child);
+    }
+
     final color = Theme.of(context).colorScheme.onSurface;
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 

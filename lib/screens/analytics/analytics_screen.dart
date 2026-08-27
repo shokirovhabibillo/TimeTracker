@@ -214,6 +214,40 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ),
             ),
+          if (usage.hasPermission && usage.todayUsage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Eng ko'p ishlatilgan",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      ...usage.todayUsage.take(6).map((u) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                u.isDistracting ? Icons.warning_amber : Icons.check_circle,
+                                size: 16,
+                                color: u.isDistracting ? extras.warningColor : Colors.green,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(u.appName)),
+                              Text('${u.timeSpentSeconds ~/ 60} daq'),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: !usage.isNativeSupported
                 ? const _UnsupportedPlatformNotice()
@@ -246,33 +280,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                       ),
                                     ),
                                   ),
-                              _BentoCard(
-                                title: 'Eng ko\'p ishlatilgan',
-                                span: true,
-                                child: Column(
-                                  children: usage.todayUsage.take(6).map((u) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            u.isDistracting ? Icons.warning_amber : Icons.check_circle,
-                                            size: 16,
-                                            color: u.isDistracting ? extras.warningColor : Colors.green,
-                                          ),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(u.appName)),
-                                    Text('${u.timeSpentSeconds ~/ 60} daq'),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
+                            ],
+                          );
+                        }),
+                      ),
           ),
         ],
       ),

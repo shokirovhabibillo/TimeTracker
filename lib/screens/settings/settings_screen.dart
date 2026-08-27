@@ -85,6 +85,11 @@ class SettingsScreen extends StatelessWidget {
                     selected: settings.settings.buttonStyle == 'liquid_glass',
                     onSelected: (_) => settings.setButtonStyle('liquid_glass'),
                   ),
+                  ChoiceChip(
+                    label: const Text('Bezakli (Islomiy)'),
+                    selected: settings.settings.buttonStyle == 'ornate',
+                    onSelected: (_) => settings.setButtonStyle('ornate'),
+                  ),
                 ],
               ),
             ),
