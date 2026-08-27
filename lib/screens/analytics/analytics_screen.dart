@@ -21,6 +21,8 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   final TaskRepository _taskRepository = TaskRepository();
   int? _rolloverCount;
+  bool _donutExpanded = true;
+  bool _rolloverExpanded = true;
 
   @override
   void initState() {
@@ -88,9 +90,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Kunlik reja taqsimoti", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 12),
-                    DailyBreakdownDonut(breakdown: breakdown),
+                    InkWell(
+                      onTap: () => setState(() => _donutExpanded = !_donutExpanded),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text("Kunlik reja taqsimoti",
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                          Icon(_donutExpanded ? Icons.expand_less : Icons.expand_more, size: 20),
+                        ],
+                      ),
+                    ),
+                    AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 220),
+                      crossFadeState: _donutExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                      firstChild: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: DailyBreakdownDonut(breakdown: breakdown),
+                      ),
+                      secondChild: const SizedBox(width: double.infinity, height: 0),
+                    ),
                   ],
                 ),
               ),
@@ -140,30 +160,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           if (_rolloverCount != null && _rolloverCount! > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: _BentoCard(
-                title: "Keyingi kunga ko'chirilgan vazifalar",
-                child: Row(
-                  children: [
-                    Icon(Icons.history_toggle_off, color: scheme.secondary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Jami $_rolloverCount marta',
-                              style: Theme.of(context).textTheme.titleSmall),
-                          Text(
-                            "O'tgan kunlarda bajarilmay qolgan vazifalarni "
-                            "\"Bugunga ko'chirish\" orqali necha marta ko'chirganingiz "
-                            "(barcha vaqt bo'yicha jami). Tugmaning o'zi faqat hozir "
-                            "bajarilmagan, o'tgan kundan qolgan vazifa bo'lsa, shu ekranda "
-                            "pastroqda ko'rinadi.",
-                            style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
-                          ),
-                        ],
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () => setState(() => _rolloverExpanded = !_rolloverExpanded),
+                        child: Row(
+                          children: [
+                            const Expanded(
+                              child: Text("Keyingi kunga ko'chirilgan vazifalar",
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                            ),
+                            Icon(_rolloverExpanded ? Icons.expand_less : Icons.expand_more, size: 18),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 220),
+                        crossFadeState: _rolloverExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                        firstChild: Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.history_toggle_off, color: scheme.secondary),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Jami $_rolloverCount marta',
+                                        style: Theme.of(context).textTheme.titleSmall),
+                                    Text(
+                                      "O'tgan kunlarda bajarilmay qolgan vazifalarni "
+                                      "\"Bugunga ko'chirish\" orqali necha marta ko'chirganingiz "
+                                      "(barcha vaqt bo'yicha jami). Tugmaning o'zi faqat hozir "
+                                      "bajarilmagan, o'tgan kundan qolgan vazifa bo'lsa, shu ekranda "
+                                      "pastroqda ko'rinadi.",
+                                      style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        secondChild: const SizedBox(width: double.infinity, height: 0),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -181,9 +228,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: columns,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 1.75,
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                              childAspectRatio: 2.1,
                             ),
                             children: [
                               _BentoCard(
