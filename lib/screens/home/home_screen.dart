@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/app_text.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
@@ -49,13 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<NavItem> _items(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return [
-      NavItem(icon: Icons.calendar_month_outlined, selectedIcon: Icons.calendar_month, label: l10n.navPlanner),
-      NavItem(icon: Icons.timer_outlined, selectedIcon: Icons.timer, label: l10n.navFocus),
-      NavItem(icon: Icons.insights_outlined, selectedIcon: Icons.insights, label: l10n.navAnalytics),
-      NavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: l10n.navSettings),
-      NavItem(icon: Icons.apps_outlined, selectedIcon: Icons.apps, label: l10n.navMore),
+      NavItem(icon: Icons.calendar_month_outlined, selectedIcon: Icons.calendar_month, label: appText(context, 'navPlanner')),
+      NavItem(icon: Icons.timer_outlined, selectedIcon: Icons.timer, label: appText(context, 'navFocus')),
+      NavItem(icon: Icons.insights_outlined, selectedIcon: Icons.insights, label: appText(context, 'navAnalytics')),
+      NavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: appText(context, 'navSettings')),
+      NavItem(icon: Icons.apps_outlined, selectedIcon: Icons.apps, label: appText(context, 'navMore')),
     ];
   }
 

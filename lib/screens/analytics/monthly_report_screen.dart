@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/lesson_plan_model.dart';
 import '../../data/models/step_model.dart';
 import '../../data/repositories/activity_time_repository.dart';
 import '../../data/repositories/daily_game_repository.dart';
 import '../../data/repositories/focus_session_repository.dart';
+import '../../data/repositories/lesson_session_repository.dart';
 import '../../data/repositories/medicine_repository.dart';
 import '../../data/repositories/step_repository.dart';
 import '../../data/repositories/task_repository.dart';
@@ -26,6 +28,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   final _activityRepository = ActivityTimeRepository();
   final _medicineRepository = MedicineRepository();
   final _gameRepository = DailyGameRepository();
+  final _lessonRepository = LessonSessionRepository();
   final _focusRepository = FocusSessionRepository();
 
   late DateTime _month;
@@ -39,6 +42,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   int _selectedActivityMinutes = 0;
   bool _selectedMedicineTaken = false;
   bool _selectedGamePlayed = false;
+  List<String> _selectedLessonDomains = [];
   int _selectedFocusMinutes = 0;
   bool _selectedDetailLoading = false;
 
@@ -98,12 +102,14 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       _medicineRepository.getTakenDoseKeys(day),
       _gameRepository.anyGamePlayedOnDay(day),
       _focusRepository.getTotalCompletedSecondsForDay(day),
+      _lessonRepository.getSecondsByDomainForDay(day),
     ]);
 
     if (!mounted) return;
     final stepLog = results[1] as StepLog;
     final activitySeconds = results[2] as Map<String, int>;
     final takenDoses = results[3] as Set<String>;
+    final lessonSeconds = results[6] as Map<String, int>;
 
     setState(() {
       _selectedDistractingSeconds = results[0] as int;
@@ -114,6 +120,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       _selectedMedicineTaken = takenDoses.isNotEmpty;
       _selectedGamePlayed = results[4] as bool;
       _selectedFocusMinutes = ((results[5] as int) / 60).round();
+      _selectedLessonDomains = lessonSeconds.keys.toList();
       _selectedDetailLoading = false;
     });
   }
@@ -399,10 +406,11 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                   _statChip(Icons.timer, '$_selectedFocusMinutes daq fokus'),
               ],
             ),
-            if (_selectedMedicineTaken || _selectedGamePlayed) ...[
+            if (_selectedMedicineTaken || _selectedGamePlayed || _selectedLessonDomains.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
+                runSpacing: 4,
                 children: [
                   if (_selectedMedicineTaken)
                     Chip(
@@ -416,6 +424,11 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                       label: const Text("O'yin o'ynalgan", style: TextStyle(fontSize: 11)),
                       visualDensity: VisualDensity.compact,
                     ),
+                  ..._selectedLessonDomains.map((d) => Chip(
+                        avatar: const Icon(Icons.fitness_center, size: 14),
+                        label: Text(PlanDomain.label(d), style: const TextStyle(fontSize: 11)),
+                        visualDensity: VisualDensity.compact,
+                      )),
                 ],
               ),
             ],

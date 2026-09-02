@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/app_text.dart';
 import '../../l10n/language_names.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
@@ -51,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
     final neumorphic = extras.neumorphic;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settingsTitle)),
+      appBar: AppBar(title: Text(appText(context, 'settingsTitle'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../data/models/lesson_plan_model.dart';
+import '../data/repositories/lesson_session_repository.dart';
 
 enum LessonTimerStatus { idle, running, paused, finished }
 
@@ -10,6 +11,9 @@ class LessonTimerProvider extends ChangeNotifier {
   int currentIndex = 0;
   Duration elapsedInSegment = Duration.zero;
   LessonTimerStatus status = LessonTimerStatus.idle;
+
+  final _sessionRepository = LessonSessionRepository();
+  int? _sessionLogId;
 
   Timer? _ticker;
 
@@ -31,6 +35,8 @@ class LessonTimerProvider extends ChangeNotifier {
     elapsedInSegment = Duration.zero;
     status = LessonTimerStatus.running;
     _startTicker();
+    _sessionLogId = null;
+    _sessionRepository.startSession(lessonPlan.domain, lessonPlan.name).then((id) => _sessionLogId = id);
     notifyListeners();
   }
 
@@ -58,6 +64,9 @@ class LessonTimerProvider extends ChangeNotifier {
     } else {
       status = LessonTimerStatus.finished;
       _ticker?.cancel();
+      if (_sessionLogId != null) {
+        _sessionRepository.endSession(_sessionLogId!, totalElapsed.inSeconds);
+      }
     }
     notifyListeners();
   }
@@ -80,6 +89,13 @@ class LessonTimerProvider extends ChangeNotifier {
 
   void stop() {
     _ticker?.cancel();
+    if (_sessionLogId != null && status != LessonTimerStatus.finished) {
+      // Stopped early — still bank the time spent as real usage for
+      // that day, rather than losing it just because the plan wasn't
+      // finished in full.
+      _sessionRepository.endSession(_sessionLogId!, totalElapsed.inSeconds);
+    }
+    _sessionLogId = null;
     status = LessonTimerStatus.idle;
     plan = null;
     currentIndex = 0;

@@ -1,4 +1,5 @@
 import '../data/repositories/focus_session_repository.dart';
+import '../data/repositories/lesson_session_repository.dart';
 import '../data/repositories/medicine_repository.dart';
 import '../data/repositories/step_repository.dart';
 import '../data/repositories/task_repository.dart';
@@ -9,6 +10,7 @@ import '../data/repositories/task_repository.dart';
 ///   25% steps, capped at an 8000-step goal.
 ///   25% focus minutes, capped at a 45-minute goal.
 ///   +5 bonus (capped at 100) if any medicine dose was taken that day.
+///   +5 bonus (capped at 100) if any Sport/Teacher/Warmup session ran.
 /// Distraction time isn't penalized separately since it already shows
 /// up indirectly (low completion), and this keeps the formula legible
 /// rather than double-counting the same underlying behavior.
@@ -19,6 +21,7 @@ class DailyActivityScore {
   final int steps;
   final int focusMinutes;
   final bool medicineTaken;
+  final bool lessonSessionHeld;
 
   DailyActivityScore({
     required this.value,
@@ -27,6 +30,7 @@ class DailyActivityScore {
     required this.steps,
     required this.focusMinutes,
     required this.medicineTaken,
+    this.lessonSessionHeld = false,
   });
 
   static const stepsGoal = 8000;
@@ -38,6 +42,7 @@ class DailyActivityScore {
     required int steps,
     required int focusMinutes,
     required bool medicineTaken,
+    bool lessonSessionHeld = false,
   }) {
     final completionPct = totalTasks > 0 ? completedTasks / totalTasks : 0.0;
     final stepsPct = (steps / stepsGoal).clamp(0.0, 1.0);
@@ -45,6 +50,7 @@ class DailyActivityScore {
 
     double score = (completionPct * 50) + (stepsPct * 25) + (focusPct * 25);
     if (medicineTaken) score += 5;
+    if (lessonSessionHeld) score += 5;
     score = score.clamp(0.0, 100.0);
 
     return DailyActivityScore(
@@ -54,6 +60,7 @@ class DailyActivityScore {
       steps: steps,
       focusMinutes: focusMinutes,
       medicineTaken: medicineTaken,
+      lessonSessionHeld: lessonSessionHeld,
     );
   }
 }
@@ -63,6 +70,7 @@ class DailyActivityScoreService {
   final _stepRepository = StepRepository();
   final _focusRepository = FocusSessionRepository();
   final _medicineRepository = MedicineRepository();
+  final _lessonRepository = LessonSessionRepository();
 
   String _dateKey(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -82,6 +90,7 @@ class DailyActivityScoreService {
       final stepLog = await _stepRepository.getLogForDay(day);
       final focusSeconds = await _focusRepository.getTotalCompletedSecondsForDay(day);
       final takenDoses = await _medicineRepository.getTakenDoseKeys(day);
+      final lessonHeld = await _lessonRepository.anySessionOnDay(day);
 
       result[key] = DailyActivityScore.compute(
         completedTasks: completion?.completed ?? 0,
@@ -89,6 +98,7 @@ class DailyActivityScoreService {
         steps: stepLog.todaySteps,
         focusMinutes: (focusSeconds / 60).round(),
         medicineTaken: takenDoses.isNotEmpty,
+        lessonSessionHeld: lessonHeld,
       );
     }
     return result;

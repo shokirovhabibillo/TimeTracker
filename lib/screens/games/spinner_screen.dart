@@ -6,6 +6,11 @@ import '../../data/models/task_model.dart';
 import '../../data/repositories/daily_spin_repository.dart';
 import '../../data/repositories/task_repository.dart';
 
+/// A real 3-reel slot machine — three separate spinning "windows" (each
+/// with its own viewing hole), mounted on a frame with three "ear" tabs
+/// up top. Reel 1 lands on a task, reel 2 on a suggested time-of-day
+/// window, reel 3 on how many times to repeat it — matching a real
+/// slot machine's staggered stop (leftmost reel stops first).
 class SpinnerScreen extends StatefulWidget {
   const SpinnerScreen({super.key});
 
@@ -13,21 +18,27 @@ class SpinnerScreen extends StatefulWidget {
   State<SpinnerScreen> createState() => _SpinnerScreenState();
 }
 
-// Wheel has 6 segments, alternating multiplier values around it.
-const List<int> _wheelSegments = [1, 2, 3, 1, 2, 3];
+const List<String> _timeWindows = ['Ertalab', 'Tushlikdan oldin', 'Tushdan keyin', 'Kechqurun'];
+const List<int> _repeatCounts = [1, 2, 3];
 
-class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProviderStateMixin {
+class _SpinnerScreenState extends State<SpinnerScreen> with TickerProviderStateMixin {
   final _taskRepository = TaskRepository();
   final _spinRepository = DailySpinRepository();
   final _rand = Random();
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 2600));
-  late Animation<double> _rotation;
+  static const _itemHeight = 56.0;
+  late final AnimationController _reel1 = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
+  late final AnimationController _reel2 = AnimationController(vsync: this, duration: const Duration(milliseconds: 2300));
+  late final AnimationController _reel3 = AnimationController(vsync: this, duration: const Duration(milliseconds: 2800));
+
+  List<String> _reel1Items = ['?'];
+  List<String> _reel2Items = List.of(_timeWindows);
+  List<String> _reel3Items = _repeatCounts.map((c) => '${c}x').toList();
 
   bool _spinning = false;
-  int? _resultMultiplier;
   TaskModel? _resultTask;
+  String? _resultWindow;
+  int? _resultMultiplier;
   int? _spinId;
   List<DailySpin> _recent = [];
 
@@ -40,6 +51,18 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
   Future<void> _loadRecent() async {
     final recent = await _spinRepository.getRecent();
     if (mounted) setState(() => _recent = recent);
+  }
+
+  /// Builds a long "strip" for a reel: the real candidates repeated
+  /// several times (for a satisfying multi-loop spin), ending exactly
+  /// on [landOn] as the final visible item.
+  List<String> _buildStrip(List<String> candidates, String landOn, int loops) {
+    final strip = <String>[];
+    for (var i = 0; i < loops; i++) {
+      strip.addAll(candidates..shuffle(_rand));
+    }
+    strip.add(landOn);
+    return strip;
   }
 
   Future<void> _spin() async {
@@ -55,39 +78,37 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
     }
 
     final chosenTask = incomplete[_rand.nextInt(incomplete.length)];
-    final targetSegment = _rand.nextInt(_wheelSegments.length);
-    final chosenMultiplier = _wheelSegments[targetSegment];
-
-    // Spin several full turns, landing exactly on the chosen segment
-    // under the top pointer.
-    final segmentAngle = 2 * pi / _wheelSegments.length;
-    final targetAngle = -(targetSegment * segmentAngle) - segmentAngle / 2;
-    final extraTurns = 4 + _rand.nextInt(3);
-    final endValue = _controller.value + extraTurns * 2 * pi + (targetAngle - (_controller.value % (2 * pi)));
+    final chosenWindow = _timeWindows[_rand.nextInt(_timeWindows.length)];
+    final chosenCount = _repeatCounts[_rand.nextInt(_repeatCounts.length)];
 
     setState(() {
       _spinning = true;
-      _resultMultiplier = null;
       _resultTask = null;
+      _resultWindow = null;
+      _resultMultiplier = null;
+      _reel1Items = _buildStrip(incomplete.map((t) => t.title).toList(), chosenTask.title, 3);
+      _reel2Items = _buildStrip(_timeWindows, chosenWindow, 4);
+      _reel3Items = _buildStrip(_repeatCounts.map((c) => '${c}x').toList(), '${chosenCount}x', 5);
     });
 
-    _rotation = Tween<double>(begin: _controller.value, end: endValue)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate));
-    _controller.forward(from: 0);
+    await Future.wait([
+      _reel1.forward(from: 0),
+      _reel2.forward(from: 0),
+      _reel3.forward(from: 0),
+    ]);
 
-    await Future.delayed(const Duration(milliseconds: 2600));
     if (!mounted) return;
-
     final id = await _spinRepository.createSpin(DailySpin(
       taskId: chosenTask.id,
       taskTitle: chosenTask.title,
-      multiplier: chosenMultiplier,
+      multiplier: chosenCount,
     ));
 
     setState(() {
       _spinning = false;
-      _resultMultiplier = chosenMultiplier;
       _resultTask = chosenTask;
+      _resultWindow = chosenWindow;
+      _resultMultiplier = chosenCount;
       _spinId = id;
     });
     _loadRecent();
@@ -102,9 +123,9 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
     final scheduled = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
     await _spinRepository.setScheduledTime(_spinId!, scheduled);
 
-    final multiplierNote = _resultMultiplier == 1 ? '' : ' (${_resultMultiplier}x bonus!)';
+    final multiplierNote = _resultMultiplier == 1 ? '' : ' (${_resultMultiplier}x)';
     await _taskRepository.createTask(TaskModel(
-      title: '🎡 ${_resultTask!.title}$multiplierNote',
+      title: '🎰 ${_resultTask!.title}$multiplierNote',
       category: _resultTask!.category,
       colorCode: _resultTask!.colorCode,
       startTime: scheduled,
@@ -114,8 +135,9 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reja kalendariga qo\'shildi!')));
       setState(() {
-        _resultMultiplier = null;
         _resultTask = null;
+        _resultWindow = null;
+        _resultMultiplier = null;
         _spinId = null;
       });
     }
@@ -123,19 +145,10 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
 
   @override
   void dispose() {
-    _controller.dispose();
+    _reel1.dispose();
+    _reel2.dispose();
+    _reel3.dispose();
     super.dispose();
-  }
-
-  Color _segmentColor(int multiplier) {
-    switch (multiplier) {
-      case 3:
-        return const Color(0xFFE11D48);
-      case 2:
-        return const Color(0xFFF59E0B);
-      default:
-        return const Color(0xFF10B981);
-    }
   }
 
   @override
@@ -146,53 +159,32 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
           const Text(
-            "G'ildirakni aylantiring — tasodifiy vazifa va bonus multiplikator (1x/2x/3x) tanlanadi.",
+            "Dastakni torting — 1-teshikda qaysi vazifa, 2-teshikda qaysi vaqt oralig'i, "
+            "3-teshikda necha marta bajarish chiqadi.",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 24),
-          Center(
-            child: SizedBox(
-              width: 260,
-              height: 260,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, child) {
-                      final angle = _spinning ? _rotation.value : 0.0;
-                      return Transform.rotate(angle: angle, child: child);
-                    },
-                    child: CustomPaint(
-                      size: const Size(260, 260),
-                      painter: _WheelPainter(segments: _wheelSegments, colorFor: _segmentColor),
-                    ),
-                  ),
-                  const Positioned(top: 0, child: Icon(Icons.arrow_drop_down, size: 40, color: Colors.black87)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+          _buildMachine(),
+          const SizedBox(height: 20),
           Center(
             child: ElevatedButton.icon(
               onPressed: _spinning ? null : _spin,
               icon: const Icon(Icons.casino),
-              label: Text(_spinning ? 'Aylanmoqda...' : 'Aylantirish'),
+              label: Text(_spinning ? 'Aylanmoqda...' : 'Dastakni tortish'),
             ),
           ),
           if (_resultTask != null) ...[
             const SizedBox(height: 20),
             Card(
-              color: _segmentColor(_resultMultiplier!).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Text('${_resultMultiplier}x', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    Text(_resultTask!.title, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                     const SizedBox(height: 4),
-                    Text(_resultTask!.title, style: const TextStyle(fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+                    Text('$_resultWindow · ${_resultMultiplier}x bajarish', style: const TextStyle(fontSize: 12)),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: _scheduleResult,
@@ -210,7 +202,7 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
             const SizedBox(height: 8),
             ..._recent.map((s) => ListTile(
                   dense: true,
-                  leading: Text('${s.multiplier}x', style: TextStyle(color: _segmentColor(s.multiplier), fontWeight: FontWeight.bold)),
+                  leading: Text('${s.multiplier}x', style: const TextStyle(fontWeight: FontWeight.bold)),
                   title: Text(s.taskTitle, style: const TextStyle(fontSize: 13)),
                   trailing: s.completed ? const Icon(Icons.check_circle, color: Colors.green, size: 18) : null,
                 )),
@@ -219,38 +211,114 @@ class _SpinnerScreenState extends State<SpinnerScreen> with SingleTickerProvider
       ),
     );
   }
+
+  Widget _buildMachine() {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.primary.withOpacity(0.3), width: 2),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // The three "ears" — small tabs poking up from the frame, one
+          // above each reel's hole.
+          Positioned(
+            top: -18,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(3, (i) => _Ear(color: scheme.primary)),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(child: _SlotReel(controller: _reel1, items: _reel1Items, itemHeight: _itemHeight, fontSize: 12)),
+              const SizedBox(width: 8),
+              Expanded(child: _SlotReel(controller: _reel2, items: _reel2Items, itemHeight: _itemHeight, fontSize: 12)),
+              const SizedBox(width: 8),
+              Expanded(child: _SlotReel(controller: _reel3, items: _reel3Items, itemHeight: _itemHeight, fontSize: 16)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _WheelPainter extends CustomPainter {
-  final List<int> segments;
-  final Color Function(int) colorFor;
-  _WheelPainter({required this.segments, required this.colorFor});
+class _Ear extends StatelessWidget {
+  final Color color;
+  const _Ear({required this.color});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    final segmentAngle = 2 * pi / segments.length;
-
-    for (var i = 0; i < segments.length; i++) {
-      final paint = Paint()..color = colorFor(segments[i]);
-      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), i * segmentAngle - pi / 2, segmentAngle, true, paint);
-
-      final labelAngle = (i + 0.5) * segmentAngle - pi / 2;
-      final labelOffset = center + Offset(cos(labelAngle), sin(labelAngle)) * radius * 0.65;
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: '${segments[i]}x',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      textPainter.paint(canvas, labelOffset - Offset(textPainter.width / 2, textPainter.height / 2));
-    }
-
-    canvas.drawCircle(center, radius, Paint()..color = Colors.white..style = PaintingStyle.stroke..strokeWidth = 4);
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 22,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+      ),
+    );
   }
+}
+
+/// One spinning reel — a fixed-height "hole" (ClipRect) showing one
+/// item at a time, with the full item strip scrolling vertically
+/// behind it and decelerating to a stop on the final item.
+class _SlotReel extends StatelessWidget {
+  final AnimationController controller;
+  final List<String> items;
+  final double itemHeight;
+  final double fontSize;
+  const _SlotReel({required this.controller, required this.items, required this.itemHeight, required this.fontSize});
 
   @override
-  bool shouldRepaint(covariant _WheelPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      height: itemHeight,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outline.withOpacity(0.3)),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) {
+          if (items.isEmpty) return const SizedBox.shrink();
+          final totalHeight = items.length * itemHeight;
+          final targetOffset = totalHeight - itemHeight; // scroll to the final (landing) item
+          final eased = Curves.decelerate.transform(controller.value);
+          final offset = targetOffset * eased;
+
+          return Transform.translate(
+            offset: Offset(0, -offset),
+            child: Column(
+              children: items
+                  .map((item) => SizedBox(
+                        height: itemHeight,
+                        child: Center(
+                          child: Text(
+                            item,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
