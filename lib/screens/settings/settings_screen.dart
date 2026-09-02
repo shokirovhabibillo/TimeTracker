@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/language_names.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/neumorphic.dart';
@@ -28,6 +30,20 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _showLanguagePicker(BuildContext context, SettingsProvider settings) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _LanguagePickerSheet(
+        currentCode: settings.settings.locale,
+        onSelected: (code) {
+          settings.setLocale(code);
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
@@ -35,10 +51,29 @@ class SettingsScreen extends StatelessWidget {
     final neumorphic = extras.neumorphic;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sozlamalar')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settingsTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
+          _SectionTitle('Til / Язык / Language'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.language),
+              label: Text(kLanguageNativeNames[settings.settings.locale] ?? settings.settings.locale),
+              onPressed: () => _showLanguagePicker(context, settings),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              "Hozircha faqat asosiy menyu, Reja, Fokus va Sozlamalar tarjima qilingan — "
+              "qolgan ekranlar bosqichma-bosqich qo'shiladi.",
+              style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+            ),
+          ),
+          const Divider(),
           _SectionTitle("Ko'rinish turi"),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -299,6 +334,73 @@ class _StyleRow extends StatelessWidget {
                   onSelected: (_) => onChanged(e.key),
                 );
               }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Searchable language picker — a plain Wrap of 53 chips would be
+/// unwieldy, so this shows a scrollable, filterable list instead, with
+/// each language shown in its own native script.
+class _LanguagePickerSheet extends StatefulWidget {
+  final String currentCode;
+  final ValueChanged<String> onSelected;
+  const _LanguagePickerSheet({required this.currentCode, required this.onSelected});
+
+  @override
+  State<_LanguagePickerSheet> createState() => _LanguagePickerSheetState();
+}
+
+class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
+  final _searchController = TextEditingController();
+
+  List<MapEntry<String, String>> get _filtered {
+    final query = _searchController.text.trim().toLowerCase();
+    final entries = kLanguageNativeNames.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    if (query.isEmpty) return entries;
+    return entries.where((e) => e.value.toLowerCase().contains(query) || e.key.contains(query)).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Search language...',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: _filtered.length,
+              itemBuilder: (context, i) {
+                final entry = _filtered[i];
+                final selected = entry.key == widget.currentCode;
+                return ListTile(
+                  title: Text(entry.value),
+                  trailing: selected ? const Icon(Icons.check, color: Colors.green) : null,
+                  selected: selected,
+                  onTap: () => widget.onSelected(entry.key),
+                );
+              },
             ),
           ),
         ],

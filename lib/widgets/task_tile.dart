@@ -94,12 +94,20 @@ class _TaskTileState extends State<TaskTile> {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        title: Text(
-          task.title,
-          style: TextStyle(
-            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Row(
+          children: [
+            if (task.priority == 3) const Text('🔴 ', style: TextStyle(fontSize: 12)),
+            if (task.priority == 1) const Text('🟢 ', style: TextStyle(fontSize: 12)),
+            Expanded(
+              child: Text(
+                task.title,
+                style: TextStyle(
+                  decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
         subtitle: Text(
           '${TaskCategory.label(task.category)} · ${timeFmt.format(task.startTime)}\u2013${timeFmt.format(task.endTime)}'

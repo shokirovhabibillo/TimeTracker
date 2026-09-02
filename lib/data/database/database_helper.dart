@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'focus_life_tracker.db');
     return openDatabase(
       path,
-      version: 21,
+      version: 24,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -229,6 +229,41 @@ class DatabaseHelper {
       await db.execute(
           "ALTER TABLE tasks ADD COLUMN is_passenger_transport INTEGER NOT NULL DEFAULT 0");
     }
+    if (oldVersion < 22) {
+      await db.execute("ALTER TABLE users_settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'uz'");
+    }
+    if (oldVersion < 23) {
+      await db.execute("ALTER TABLE step_logs ADD COLUMN accumulated_offset INTEGER NOT NULL DEFAULT 0");
+    }
+    if (oldVersion < 24) {
+      await db.execute("ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 2");
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS strategic_goals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          parent_id INTEGER REFERENCES strategic_goals(id) ON DELETE CASCADE,
+          level TEXT NOT NULL CHECK(level IN ('asr','decade','year','month','week','day')),
+          position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 5),
+          title TEXT NOT NULL,
+          period_start TEXT,
+          period_end TEXT,
+          status TEXT NOT NULL DEFAULT 'active',
+          linked_task_id INTEGER,
+          created_at TEXT NOT NULL
+        );
+      ''');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_strategic_parent ON strategic_goals(parent_id)');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS daily_spins (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          task_id INTEGER,
+          task_title TEXT NOT NULL,
+          multiplier INTEGER NOT NULL CHECK(multiplier IN (1,2,3)),
+          scheduled_time TEXT,
+          completed INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL
+        );
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -251,7 +286,8 @@ class DatabaseHelper {
         linked_child_device_id TEXT,
         child_display_name TEXT,
         button_style TEXT NOT NULL DEFAULT 'normal',
-        visualization_mode TEXT NOT NULL DEFAULT 'smartphone'
+        visualization_mode TEXT NOT NULL DEFAULT 'smartphone',
+        locale TEXT NOT NULL DEFAULT 'uz'
       );
     ''');
 
@@ -271,7 +307,8 @@ class DatabaseHelper {
         rolled_over_count INTEGER NOT NULL DEFAULT 0,
         completion_status TEXT,
         recurrence_end_date TEXT,
-        is_passenger_transport INTEGER NOT NULL DEFAULT 0
+        is_passenger_transport INTEGER NOT NULL DEFAULT 0,
+        priority INTEGER NOT NULL DEFAULT 2
       );
     ''');
 
@@ -413,6 +450,34 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
+      CREATE TABLE strategic_goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_id INTEGER REFERENCES strategic_goals(id) ON DELETE CASCADE,
+        level TEXT NOT NULL CHECK(level IN ('asr','decade','year','month','week','day')),
+        position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 5),
+        title TEXT NOT NULL,
+        period_start TEXT,
+        period_end TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        linked_task_id INTEGER,
+        created_at TEXT NOT NULL
+      );
+    ''');
+    await db.execute('CREATE INDEX idx_strategic_parent ON strategic_goals(parent_id)');
+
+    await db.execute('''
+      CREATE TABLE daily_spins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER,
+        task_title TEXT NOT NULL,
+        multiplier INTEGER NOT NULL CHECK(multiplier IN (1,2,3)),
+        scheduled_time TEXT,
+        completed INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
+    ''');
+
+    await db.execute('''
       CREATE TABLE flashcards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         deck TEXT NOT NULL,
@@ -432,7 +497,8 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL UNIQUE,
         midnight_baseline INTEGER NOT NULL,
-        last_reading INTEGER NOT NULL
+        last_reading INTEGER NOT NULL,
+        accumulated_offset INTEGER NOT NULL DEFAULT 0
       );
     ''');
 

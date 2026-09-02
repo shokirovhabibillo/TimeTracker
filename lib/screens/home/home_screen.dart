@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/generated/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/timer_provider.dart';
@@ -47,13 +48,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (i == 0) context.read<TaskProvider>().loadTasksForSelectedDay();
   }
 
-  static const _items = [
-    NavItem(icon: Icons.calendar_month_outlined, selectedIcon: Icons.calendar_month, label: 'Reja'),
-    NavItem(icon: Icons.timer_outlined, selectedIcon: Icons.timer, label: 'Fokus'),
-    NavItem(icon: Icons.insights_outlined, selectedIcon: Icons.insights, label: 'Tahlil'),
-    NavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Sozlama'),
-    NavItem(icon: Icons.apps_outlined, selectedIcon: Icons.apps, label: 'Boshqa'),
-  ];
+  List<NavItem> _items(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      NavItem(icon: Icons.calendar_month_outlined, selectedIcon: Icons.calendar_month, label: l10n.navPlanner),
+      NavItem(icon: Icons.timer_outlined, selectedIcon: Icons.timer, label: l10n.navFocus),
+      NavItem(icon: Icons.insights_outlined, selectedIcon: Icons.insights, label: l10n.navAnalytics),
+      NavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: l10n.navSettings),
+      NavItem(icon: Icons.apps_outlined, selectedIcon: Icons.apps, label: l10n.navMore),
+    ];
+  }
 
   @override
   void initState() {
@@ -107,13 +111,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
         final nav = isLandscape
             ? MorphingNavBar(
-                items: _items,
+                items: _items(context),
                 selectedIndex: _index,
                 onSelected: _goToIndex,
                 axis: Axis.vertical,
               )
             : LiquidNavBar(
-                items: _items,
+                items: _items(context),
                 selectedIndex: _index,
                 onSelected: _goToIndex,
               );

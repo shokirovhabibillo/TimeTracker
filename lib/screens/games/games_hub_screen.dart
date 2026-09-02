@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'lightbulb_game_screen.dart';
 import 'season_tree_game_screen.dart';
+import 'spinner_screen.dart';
 
 class GamesHubScreen extends StatelessWidget {
   const GamesHubScreen({super.key});
@@ -39,6 +40,16 @@ class GamesHubScreen extends StatelessWidget {
               subtitle: const Text("Slayderni surib, daraxtni fasldan-faslga o'tkazing"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SeasonTreeGameScreen())),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.casino_outlined)),
+              title: const Text('Spiner'),
+              subtitle: const Text("Tasodifiy vazifa va bonus multiplikator tanlang (cheklovsiz)"),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SpinnerScreen())),
             ),
           ),
         ],

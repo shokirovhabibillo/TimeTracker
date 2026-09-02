@@ -64,6 +64,7 @@ class TaskModel {
   final String? completionStatus; // 'on_time' | 'late' | 'postponed'
   final DateTime? recurrenceEndDate;
   final bool isPassengerTransport; // Transport category: true = riding as a passenger (free to do other things)
+  final int priority; // 1=past (low), 2=muhim (normal), 3=juda muhim (high)
 
   TaskModel({
     this.id,
@@ -80,6 +81,7 @@ class TaskModel {
     this.completionStatus,
     this.recurrenceEndDate,
     this.isPassengerTransport = false,
+    this.priority = 2,
   });
 
   int get durationMinutes => endTime.difference(startTime).inMinutes;
@@ -100,6 +102,7 @@ class TaskModel {
     DateTime? recurrenceEndDate,
     bool clearRecurrenceEndDate = false,
     bool? isPassengerTransport,
+    int? priority,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -117,6 +120,7 @@ class TaskModel {
       recurrenceEndDate:
           clearRecurrenceEndDate ? null : (recurrenceEndDate ?? this.recurrenceEndDate),
       isPassengerTransport: isPassengerTransport ?? this.isPassengerTransport,
+      priority: priority ?? this.priority,
     );
   }
 
@@ -137,6 +141,7 @@ class TaskModel {
       'completion_status': completionStatus,
       'recurrence_end_date': recurrenceEndDate?.toIso8601String(),
       'is_passenger_transport': isPassengerTransport ? 1 : 0,
+      'priority': priority,
     };
   }
 
@@ -158,6 +163,7 @@ class TaskModel {
           ? DateTime.parse(map['recurrence_end_date'] as String)
           : null,
       isPassengerTransport: (map['is_passenger_transport'] as int? ?? 0) == 1,
+      priority: map['priority'] as int? ?? 2,
     );
   }
 }

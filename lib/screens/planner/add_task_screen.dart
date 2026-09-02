@@ -43,6 +43,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String? _durationUnit; // null = "Doim" (forever); else 'day'|'week'|'month'|'year'
   int _durationCount = 1;
   bool _isPassengerTransport = false;
+  int _priority = 2;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     _titleController = TextEditingController(text: e?.title ?? widget.initialTitle ?? '');
     _category = e?.category ?? widget.initialCategory ?? TaskCategory.work;
     _isPassengerTransport = e?.isPassengerTransport ?? false;
+    _priority = e?.priority ?? 2;
     _start = e?.startTime ??
         DateTime(widget.initialDay.year, widget.initialDay.month,
             widget.initialDay.day, 9);
@@ -144,6 +146,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       title: _titleController.text.trim(),
       category: _category,
       isPassengerTransport: _category == TaskCategory.transport && _isPassengerTransport,
+      priority: _priority,
       colorCode: widget.existing?.colorCode ??
           _categoryDefaultColors[_category] ??
           '#00F0FF',
@@ -227,6 +230,29 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   .map((c) => DropdownMenuItem(value: c, child: Text(TaskCategory.label(c))))
                   .toList(),
               onChanged: (v) => setState(() => _category = v!),
+            ),
+            const SizedBox(height: 12),
+            Text('Muhimlik darajasi', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('🟢 Past'),
+                  selected: _priority == 1,
+                  onSelected: (_) => setState(() => _priority = 1),
+                ),
+                ChoiceChip(
+                  label: const Text('🟡 Muhim'),
+                  selected: _priority == 2,
+                  onSelected: (_) => setState(() => _priority = 2),
+                ),
+                ChoiceChip(
+                  label: const Text('🔴 Juda muhim'),
+                  selected: _priority == 3,
+                  onSelected: (_) => setState(() => _priority = 3),
+                ),
+              ],
             ),
             if (_category == TaskCategory.transport) ...[
               const SizedBox(height: 8),

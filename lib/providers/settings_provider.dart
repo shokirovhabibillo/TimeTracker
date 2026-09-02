@@ -121,6 +121,12 @@ class SettingsProvider extends ChangeNotifier {
     await _repository.saveSettings(_settings);
   }
 
+  Future<void> setLocale(String localeCode) async {
+    _settings = _settings.copyWith(locale: localeCode);
+    notifyListeners();
+    await _repository.saveSettings(_settings);
+  }
+
   Future<void> setThemeId(String themeId) async {
     _settings = _settings.copyWith(themeType: themeId);
     notifyListeners();

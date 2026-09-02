@@ -73,7 +73,8 @@ class UserSettingsModel {
   final String familyRole; // DeviceRole: none | parent | child
   final String? linkedChildDeviceId; // set on the parent's device once linked
   final String? childDisplayName; // set on the child's device (shown to parent)
-  final String buttonStyle; // 'normal' | 'glass' | 'liquid_glass'
+  final String buttonStyle; // 'normal' | 'glass' | 'liquid_glass' | 'ornate'
+  final String locale; // 'uz' | 'ru' | 'en'
   final String visualizationMode; // 'smartphone' | 'smartwatch'
 
   UserSettingsModel({
@@ -94,6 +95,7 @@ class UserSettingsModel {
     this.linkedChildDeviceId,
     this.childDisplayName,
     this.buttonStyle = 'normal',
+    this.locale = 'uz',
     this.visualizationMode = 'smartphone',
   });
 
@@ -114,6 +116,7 @@ class UserSettingsModel {
     String? linkedChildDeviceId,
     String? childDisplayName,
     String? buttonStyle,
+    String? locale,
     String? visualizationMode,
   }) {
     return UserSettingsModel(
@@ -135,6 +138,7 @@ class UserSettingsModel {
       linkedChildDeviceId: linkedChildDeviceId ?? this.linkedChildDeviceId,
       childDisplayName: childDisplayName ?? this.childDisplayName,
       buttonStyle: buttonStyle ?? this.buttonStyle,
+      locale: locale ?? this.locale,
       visualizationMode: visualizationMode ?? this.visualizationMode,
     );
   }
@@ -158,6 +162,7 @@ class UserSettingsModel {
       'linked_child_device_id': linkedChildDeviceId,
       'child_display_name': childDisplayName,
       'button_style': buttonStyle,
+      'locale': locale,
       'visualization_mode': visualizationMode,
     };
   }
@@ -182,6 +187,7 @@ class UserSettingsModel {
       linkedChildDeviceId: map['linked_child_device_id'] as String?,
       childDisplayName: map['child_display_name'] as String?,
       buttonStyle: map['button_style'] as String? ?? 'normal',
+      locale: map['locale'] as String? ?? 'uz',
       visualizationMode: map['visualization_mode'] as String? ?? 'smartphone',
     );
   }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/usage_provider.dart';
@@ -61,6 +63,68 @@ class FocusLifeTrackerApp extends StatelessWidget {
               title: 'Focus & Life Tracker',
               debugShowCheckedModeBanner: false,
               theme: settings.themeData,
+              locale: Locale(settings.settings.locale),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('uz'),
+                Locale('am'),
+                Locale('ar'),
+                Locale('az'),
+                Locale('bg'),
+                Locale('bn'),
+                Locale('bs'),
+                Locale('cs'),
+                Locale('da'),
+                Locale('de'),
+                Locale('el'),
+                Locale('en'),
+                Locale('es'),
+                Locale('fa'),
+                Locale('fi'),
+                Locale('fr'),
+                Locale('he'),
+                Locale('hi'),
+                Locale('hr'),
+                Locale('hu'),
+                Locale('hy'),
+                Locale('id'),
+                Locale('it'),
+                Locale('ja'),
+                Locale('ka'),
+                Locale('kk'),
+                Locale('ko'),
+                Locale('ky'),
+                Locale('mn'),
+                Locale('ms'),
+                Locale('nl'),
+                Locale('no'),
+                Locale('pa'),
+                Locale('pl'),
+                Locale('ps'),
+                Locale('pt'),
+                Locale('ro'),
+                Locale('ru'),
+                Locale('sk'),
+                Locale('sr'),
+                Locale('sv'),
+                Locale('sw'),
+                Locale('ta'),
+                Locale('te'),
+                Locale('tg'),
+                Locale('th'),
+                Locale('tk'),
+                Locale('tl'),
+                Locale('tr'),
+                Locale('uk'),
+                Locale('ur'),
+                Locale('vi'),
+                Locale('zh'),
+              ],
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(

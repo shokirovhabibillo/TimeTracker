@@ -71,6 +71,17 @@ class DailyGameRepository {
     return DailyGameEntry(gameId: gameId, date: _todayKey(), sessionStartAt: now);
   }
 
+  /// Whether any daily game was played on [day] — used by the Monthly
+  /// Report to show "what else happened" on a given day, not just plan
+  /// completion.
+  Future<bool> anyGamePlayedOnDay(DateTime day) async {
+    final db = await _dbHelper.database;
+    final key =
+        '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+    final rows = await db.query('daily_game_log', where: 'date = ?', whereArgs: [key], limit: 1);
+    return rows.isNotEmpty;
+  }
+
   Future<void> completeSession(String gameId, int score) async {
     final db = await _dbHelper.database;
     await db.update(

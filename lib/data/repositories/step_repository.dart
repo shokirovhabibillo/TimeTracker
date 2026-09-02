@@ -16,19 +16,39 @@ class StepRepository {
     final db = await _dbHelper.database;
     final today = _todayKey();
     final rows = await db.query('step_logs', where: 'date = ?', whereArgs: [today]);
+
     if (rows.isNotEmpty) {
       final log = StepLog.fromMap(rows.first);
-      if (currentCumulativeReading > log.lastReading) {
+
+      if (currentCumulativeReading >= log.lastReading) {
+        // Normal case: counter keeps climbing, just record the new reading.
         final updated = StepLog(
           id: log.id,
           date: log.date,
           midnightBaseline: log.midnightBaseline,
           lastReading: currentCumulativeReading,
+          accumulatedOffset: log.accumulatedOffset,
         );
         await db.update('step_logs', updated.toMap(), where: 'id = ?', whereArgs: [log.id]);
         return updated;
       }
-      return log;
+
+      // The raw reading DROPPED below what we last saw — the device was
+      // rebooted partway through the day (the hardware counter resets on
+      // boot). Bank whatever was counted before the reboot into the
+      // offset, then restart the baseline from this new post-reboot
+      // reading, so today's total keeps climbing correctly instead of
+      // silently losing everything counted so far today.
+      final bankedSteps = (log.lastReading - log.midnightBaseline).clamp(0, 999999);
+      final updated = StepLog(
+        id: log.id,
+        date: log.date,
+        midnightBaseline: currentCumulativeReading,
+        lastReading: currentCumulativeReading,
+        accumulatedOffset: log.accumulatedOffset + bankedSteps,
+      );
+      await db.update('step_logs', updated.toMap(), where: 'id = ?', whereArgs: [log.id]);
+      return updated;
     }
 
     // First reading of a new day: the step sensor is cumulative since
@@ -46,7 +66,13 @@ class StepRepository {
 
     final newLog = StepLog(date: today, midnightBaseline: baseline, lastReading: currentCumulativeReading);
     final id = await db.insert('step_logs', newLog.toMap()..remove('id'));
-    return StepLog(id: id, date: newLog.date, midnightBaseline: newLog.midnightBaseline, lastReading: newLog.lastReading);
+    return StepLog(
+      id: id,
+      date: newLog.date,
+      midnightBaseline: newLog.midnightBaseline,
+      lastReading: newLog.lastReading,
+      accumulatedOffset: newLog.accumulatedOffset,
+    );
   }
 
   Future<void> updateReading(int logId, int currentCumulativeReading) async {
@@ -62,8 +88,7 @@ class StepRepository {
     final result = <StepLog>[];
     for (var i = days - 1; i >= 0; i--) {
       final day = now.subtract(Duration(days: i));
-      final key =
-          '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+      final key = _dateKeyFor(day);
       final rows = await db.query('step_logs', where: 'date = ?', whereArgs: [key], limit: 1);
       if (rows.isEmpty) {
         result.add(StepLog(date: key, midnightBaseline: 0, lastReading: 0));
@@ -72,5 +97,14 @@ class StepRepository {
       }
     }
     return result;
+  }
+
+  /// A single day's log, or a zero-step placeholder if none exists.
+  Future<StepLog> getLogForDay(DateTime day) async {
+    final db = await _dbHelper.database;
+    final key = _dateKeyFor(day);
+    final rows = await db.query('step_logs', where: 'date = ?', whereArgs: [key], limit: 1);
+    if (rows.isEmpty) return StepLog(date: key, midnightBaseline: 0, lastReading: 0);
+    return StepLog.fromMap(rows.first);
   }
 }

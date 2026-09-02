@@ -8,6 +8,7 @@ import '../idp/idp_list_screen.dart';
 import '../medicine/medication_home_screen.dart';
 import '../news/news_contact_screen.dart';
 import '../projects/project_list_screen.dart';
+import '../strategy/strategy_level_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../reading/reading_home_screen.dart';
 import '../steps/step_home_screen.dart';
@@ -32,6 +33,7 @@ class MoreMenuScreen extends StatelessWidget {
       (icon: Icons.family_restroom, label: 'Ota-ona / Farzand', builder: (_) => const FamilyHomeScreen()),
       (icon: Icons.medication_outlined, label: 'Dori qabul qilish', builder: (_) => const MedicationHomeScreen()),
       (icon: Icons.dashboard, label: 'Loyihalar (jamoaviy)', builder: (_) => const ProjectListScreen()),
+      (icon: Icons.flag_circle, label: '100 yillik strategiya', builder: (_) => const StrategyLevelScreen(parentId: null, level: 'asr', parentTitle: 'Umringiz strategiyasi')),
       (icon: Icons.videogame_asset_outlined, label: "Kunlik o'yinlar", builder: (_) => const GamesHubScreen()),
       (icon: Icons.directions_walk, label: 'Qadam va masofa', builder: (_) => const StepHomeScreen()),
       (icon: Icons.chrome_reader_mode_outlined, label: "O'qish rejimi (PDF)", builder: (_) => const ReadingHomeScreen()),

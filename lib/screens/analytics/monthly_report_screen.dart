@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/step_model.dart';
+import '../../data/repositories/activity_time_repository.dart';
+import '../../data/repositories/daily_game_repository.dart';
+import '../../data/repositories/focus_session_repository.dart';
+import '../../data/repositories/medicine_repository.dart';
+import '../../data/repositories/step_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/usage_repository.dart';
+import 'yearly_report_screen.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
-  const MonthlyReportScreen({super.key});
+  final DateTime? initialMonth;
+  const MonthlyReportScreen({super.key, this.initialMonth});
 
   @override
   State<MonthlyReportScreen> createState() => _MonthlyReportScreenState();
@@ -13,17 +21,31 @@ class MonthlyReportScreen extends StatefulWidget {
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   final _taskRepository = TaskRepository();
   final _usageRepository = UsageRepository();
+  final _stepRepository = StepRepository();
+  final _activityRepository = ActivityTimeRepository();
+  final _medicineRepository = MedicineRepository();
+  final _gameRepository = DailyGameRepository();
+  final _focusRepository = FocusSessionRepository();
 
-  DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  late DateTime _month;
   Map<String, ({int completed, int total})>? _summary;
   DateTime? _selectedDay;
   int? _selectedDistractingSeconds;
+  int _selectedSteps = 0;
+  double _selectedDistanceKm = 0;
+  int _selectedCalories = 0;
+  int _selectedActivityMinutes = 0;
+  bool _selectedMedicineTaken = false;
+  bool _selectedGamePlayed = false;
+  int _selectedFocusMinutes = 0;
+  bool _selectedDetailLoading = false;
 
   static const _weekdayNames = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
 
   @override
   void initState() {
     super.initState();
+    _month = widget.initialMonth ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
     _load();
   }
 
@@ -46,9 +68,34 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     setState(() {
       _selectedDay = day;
       _selectedDistractingSeconds = null;
+      _selectedDetailLoading = true;
     });
-    final seconds = await _usageRepository.getDistractingSecondsForDay(day);
-    if (mounted) setState(() => _selectedDistractingSeconds = seconds);
+
+    final results = await Future.wait([
+      _usageRepository.getDistractingSecondsForDay(day),
+      _stepRepository.getLogForDay(day),
+      _activityRepository.getSecondsByActivity(day),
+      _medicineRepository.getTakenDoseKeys(day),
+      _gameRepository.anyGamePlayedOnDay(day),
+      _focusRepository.getTotalCompletedSecondsForDay(day),
+    ]);
+
+    if (!mounted) return;
+    final stepLog = results[1] as StepLog;
+    final activitySeconds = results[2] as Map<String, int>;
+    final takenDoses = results[3] as Set<String>;
+
+    setState(() {
+      _selectedDistractingSeconds = results[0] as int;
+      _selectedSteps = stepLog.todaySteps;
+      _selectedDistanceKm = stepLog.todayDistanceMeters / 1000;
+      _selectedCalories = (_selectedSteps * 0.04).round();
+      _selectedActivityMinutes = (activitySeconds.values.fold(0, (a, b) => a + b) / 60).round();
+      _selectedMedicineTaken = takenDoses.isNotEmpty;
+      _selectedGamePlayed = results[4] as bool;
+      _selectedFocusMinutes = ((results[5] as int) / 60).round();
+      _selectedDetailLoading = false;
+    });
   }
 
   void _changeMonth(int delta) {
@@ -81,7 +128,18 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     final leadingBlanks = (firstOfMonth.weekday - 1) % 7;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Oylik hisobot')),
+      appBar: AppBar(
+        title: const Text('Oylik hisobot'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_view_month),
+            tooltip: "Yillik ko'rinish",
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const YearlyReportScreen()),
+            ),
+          ),
+        ],
+      ),
       body: _summary == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -228,6 +286,17 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     );
   }
 
+  Widget _statChip(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
   Widget _buildDayDetail() {
     final day = _selectedDay!;
     final entry = _summary![_dateKey(day)];
@@ -271,6 +340,48 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             const SizedBox(height: 4),
             Text("Chalg'ituvchi ilovalar: ${(_selectedDistractingSeconds! / 60).round()} daqiqa",
                 style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
+          ],
+          if (_selectedDetailLoading) ...[
+            const SizedBox(height: 10),
+            const Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+          ] else ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 12,
+              runSpacing: 6,
+              children: [
+                if (_selectedSteps > 0)
+                  _statChip(Icons.directions_walk, '$_selectedSteps qadam'),
+                if (_selectedDistanceKm > 0)
+                  _statChip(Icons.straighten, '${_selectedDistanceKm.toStringAsFixed(2)} km'),
+                if (_selectedCalories > 0)
+                  _statChip(Icons.local_fire_department, '$_selectedCalories kkal'),
+                if (_selectedActivityMinutes > 0)
+                  _statChip(Icons.directions_run, '$_selectedActivityMinutes daq faollik'),
+                if (_selectedFocusMinutes > 0)
+                  _statChip(Icons.timer, '$_selectedFocusMinutes daq fokus'),
+              ],
+            ),
+            if (_selectedMedicineTaken || _selectedGamePlayed) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  if (_selectedMedicineTaken)
+                    Chip(
+                      avatar: const Icon(Icons.medication, size: 14),
+                      label: const Text('Dori ichilgan', style: TextStyle(fontSize: 11)),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  if (_selectedGamePlayed)
+                    Chip(
+                      avatar: const Icon(Icons.videogame_asset, size: 14),
+                      label: const Text("O'yin o'ynalgan", style: TextStyle(fontSize: 11)),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                ],
+              ),
+            ],
           ],
           if (reasons.isNotEmpty) ...[
             const SizedBox(height: 10),
