@@ -8,6 +8,7 @@ import '../../data/repositories/medicine_repository.dart';
 import '../../data/repositories/step_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/usage_repository.dart';
+import '../../services/daily_activity_score.dart';
 import 'yearly_report_screen.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
   late DateTime _month;
   Map<String, ({int completed, int total})>? _summary;
+  Map<String, DailyActivityScore>? _scores;
   DateTime? _selectedDay;
   int? _selectedDistractingSeconds;
   int _selectedSteps = 0;
@@ -40,6 +42,8 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   int _selectedFocusMinutes = 0;
   bool _selectedDetailLoading = false;
 
+  final _scoreService = DailyActivityScoreService();
+
   static const _weekdayNames = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
 
   @override
@@ -50,18 +54,34 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _summary = null);
+    setState(() {
+      _summary = null;
+      _scores = null;
+    });
     final summary = await _taskRepository.getMonthlyCompletionSummary(_month);
-    if (mounted) setState(() => _summary = summary);
+    final scores = await _scoreService.getMonthlyScores(_month);
+    if (mounted) {
+      setState(() {
+        _summary = summary;
+        _scores = scores;
+      });
+    }
   }
 
   String _dateKey(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  /// Cell shading now reflects the blended activity score (plan +
+  /// steps + focus + medicine), not plan completion alone — a day with
+  /// a light plan but lots of walking/focus no longer looks "empty".
+  /// Still returns -1 (no-data gray) only when there's truly nothing
+  /// recorded that day at all.
   double _pctFor(DateTime day) {
-    final entry = _summary?[_dateKey(day)];
-    if (entry == null || entry.total == 0) return -1; // -1 = no plan that day
-    return entry.completed / entry.total;
+    final score = _scores?[_dateKey(day)];
+    if (score == null) return -1;
+    final hasAnySignal = score.totalTasks > 0 || score.steps > 0 || score.focusMinutes > 0 || score.medicineTaken;
+    if (!hasAnySignal) return -1;
+    return score.value / 100;
   }
 
   Future<void> _selectDay(DateTime day) async {
@@ -140,7 +160,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           ),
         ],
       ),
-      body: _summary == null
+      body: (_summary == null || _scores == null)
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -215,8 +235,9 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text('Faollik balli: ', style: TextStyle(fontSize: 10, color: Theme.of(context).hintColor)),
                     Text('Kam', style: TextStyle(fontSize: 10, color: Theme.of(context).hintColor)),
                     const SizedBox(width: 4),
                     ...List.generate(4, (i) {
@@ -234,6 +255,14 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
                     const SizedBox(width: 4),
                     Text("Ko'p", style: TextStyle(fontSize: 10, color: Theme.of(context).hintColor)),
                   ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    "(reja bajarilishi + qadam + fokus + dori — birlashtirilgan ko'rsatkich)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 9, color: Theme.of(context).hintColor),
+                  ),
                 ),
                 if (_selectedDay != null) ...[
                   const SizedBox(height: 16),
@@ -330,7 +359,15 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${day.day}.${day.month}.${day.year}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${day.day}.${day.month}.${day.year}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (_scores?[_dateKey(day)] != null)
+                Text('Ball: ${_scores![_dateKey(day)]!.value.round()}/100',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+            ],
+          ),
           const SizedBox(height: 6),
           if (entry != null && entry.total > 0)
             Text('${entry.completed}/${entry.total} vazifa bajarilgan (${((pct ?? 0) * 100).round()}%)')

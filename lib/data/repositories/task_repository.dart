@@ -85,7 +85,6 @@ class TaskRepository {
     }
     return result;
   }
-
   /// Returns every task that should appear on [day] — both tasks whose
   /// stored `start_time` literally falls on that date, AND recurring
   /// tasks (DAILY / WEEKLY:...) created on an earlier date whose rule
