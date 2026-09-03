@@ -106,22 +106,22 @@ class SettingsScreen extends StatelessWidget {
                 spacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text('Oddiy'),
+                    label: Text(appText(context, 'settingsButtonNormal')),
                     selected: settings.settings.buttonStyle == 'normal',
                     onSelected: (_) => settings.setButtonStyle('normal'),
                   ),
                   ChoiceChip(
-                    label: const Text('Shaffof (Glass)'),
+                    label: Text(appText(context, 'settingsButtonGlass')),
                     selected: settings.settings.buttonStyle == 'glass',
                     onSelected: (_) => settings.setButtonStyle('glass'),
                   ),
                   ChoiceChip(
-                    label: const Text('Liquid Glass'),
+                    label: Text(appText(context, 'settingsButtonLiquidGlass')),
                     selected: settings.settings.buttonStyle == 'liquid_glass',
                     onSelected: (_) => settings.setButtonStyle('liquid_glass'),
                   ),
                   ChoiceChip(
-                    label: const Text('Bezakli (Islomiy)'),
+                    label: Text(appText(context, 'settingsButtonOrnate')),
                     selected: settings.settings.buttonStyle == 'ornate',
                     onSelected: (_) => settings.setButtonStyle('ornate'),
                   ),

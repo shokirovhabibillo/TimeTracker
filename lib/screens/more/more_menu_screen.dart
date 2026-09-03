@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_text.dart';
 import '../counter/counter_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../family/family_home_screen.dart';
@@ -23,26 +24,26 @@ class MoreMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = <({IconData icon, String label, WidgetBuilder builder})>[
-      (icon: Icons.dashboard_customize, label: 'Dashboard (hammasi birga)', builder: (_) => const DashboardScreen()),
-      (icon: Icons.school_outlined, label: "O'qituvchi rejimi", builder: (_) => const TeacherHomeScreen()),
-      (icon: Icons.fitness_center, label: 'Sport (mashqlar)', builder: (_) => const SportHomeScreen()),
-      (icon: Icons.menu_book_outlined, label: "O'qish (til o'rganish)", builder: (_) => const StudyHomeScreen()),
-      (icon: Icons.mosque_outlined, label: 'Ibodat', builder: (_) => const WorshipHomeScreen()),
-      (icon: Icons.pin_outlined, label: 'Sanoq (Counter)', builder: (_) => const CounterScreen()),
-      (icon: Icons.trending_up, label: 'Shaxsiy rivojlanish (IDP)', builder: (_) => const IdpListScreen()),
-      (icon: Icons.family_restroom, label: 'Ota-ona / Farzand', builder: (_) => const FamilyHomeScreen()),
-      (icon: Icons.medication_outlined, label: 'Dori qabul qilish', builder: (_) => const MedicationHomeScreen()),
-      (icon: Icons.dashboard, label: 'Loyihalar (jamoaviy)', builder: (_) => const ProjectListScreen()),
-      (icon: Icons.flag_circle, label: '100 yillik strategiya', builder: (_) => const StrategyLevelScreen(parentId: null, level: 'asr', parentTitle: 'Umringiz strategiyasi')),
-      (icon: Icons.videogame_asset_outlined, label: "Kunlik o'yinlar", builder: (_) => const GamesHubScreen()),
-      (icon: Icons.directions_walk, label: 'Qadam va masofa', builder: (_) => const StepHomeScreen()),
-      (icon: Icons.chrome_reader_mode_outlined, label: "O'qish rejimi (PDF)", builder: (_) => const ReadingHomeScreen()),
-      (icon: Icons.campaign_outlined, label: 'Yangiliklar va aloqa', builder: (_) => const NewsContactScreen()),
-      (icon: Icons.help_outline, label: 'Yordam / Qo\'llanma', builder: (_) => const OnboardingScreen()),
+      (icon: Icons.dashboard_customize, label: appText(context, 'moreDashboard'), builder: (_) => const DashboardScreen()),
+      (icon: Icons.school_outlined, label: appText(context, 'moreTeacher'), builder: (_) => const TeacherHomeScreen()),
+      (icon: Icons.fitness_center, label: appText(context, 'moreSport'), builder: (_) => const SportHomeScreen()),
+      (icon: Icons.menu_book_outlined, label: appText(context, 'moreStudy'), builder: (_) => const StudyHomeScreen()),
+      (icon: Icons.mosque_outlined, label: appText(context, 'moreWorship'), builder: (_) => const WorshipHomeScreen()),
+      (icon: Icons.pin_outlined, label: appText(context, 'moreCounter'), builder: (_) => const CounterScreen()),
+      (icon: Icons.trending_up, label: appText(context, 'moreIdp'), builder: (_) => const IdpListScreen()),
+      (icon: Icons.family_restroom, label: appText(context, 'moreFamily'), builder: (_) => const FamilyHomeScreen()),
+      (icon: Icons.medication_outlined, label: appText(context, 'moreMedicine'), builder: (_) => const MedicationHomeScreen()),
+      (icon: Icons.dashboard, label: appText(context, 'moreProjects'), builder: (_) => const ProjectListScreen()),
+      (icon: Icons.flag_circle, label: appText(context, 'moreStrategy'), builder: (_) => const StrategyLevelScreen(parentId: null, level: 'asr', parentTitle: 'Umringiz strategiyasi')),
+      (icon: Icons.videogame_asset_outlined, label: appText(context, 'moreGames'), builder: (_) => const GamesHubScreen()),
+      (icon: Icons.directions_walk, label: appText(context, 'moreSteps'), builder: (_) => const StepHomeScreen()),
+      (icon: Icons.chrome_reader_mode_outlined, label: appText(context, 'moreReading'), builder: (_) => const ReadingHomeScreen()),
+      (icon: Icons.campaign_outlined, label: appText(context, 'moreNews'), builder: (_) => const NewsContactScreen()),
+      (icon: Icons.help_outline, label: appText(context, 'moreHelp'), builder: (_) => const OnboardingScreen()),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Boshqa bo\'limlar')),
+      appBar: AppBar(title: Text(appText(context, 'moreTitle'))),
       body: GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
